@@ -1,0 +1,436 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id            String   @id @default(cuid())
+  name          String
+  nit           String?
+  city          String?
+  country       String   @default("CO")
+  plan          String   @default("Demo")
+  billingStatus String   @default("trial")
+  trialEndsAt   DateTime?
+  logoDataUrl   String?
+  brandPhrase   String   @default("GPS + PESV inteligente")
+  settings      Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  users              User[]
+  vehicles           Vehicle[]
+  assignments        DriverVehicleAssignment[]
+  inspections        Inspection[]
+  inspectionDrafts   InspectionDraft[]
+  locationPings      LocationPing[]
+  incidents          Incident[]
+  geofences          Geofence[]
+  telemetryConfigs   TelemetryConfig[]
+  trips              Trip[]
+  routes             Route[]
+  fuelLogs           FuelLog[]
+  expenses           Expense[]
+  checklistConfigs   ChecklistConfig[]
+  normativeNews      NormativeNews[]
+  normativeAlerts    NormativeAlert[]
+  normativeDocuments NormativeDocument[]
+  normativeBases     NormativeBase[]
+}
+
+model User {
+  id                    String   @id @default(cuid())
+  companyId             String
+  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name                  String
+  email                 String   @unique
+  role                  String   @default("conductor")
+  passwordHash          String
+  salt                  String
+  active                Boolean  @default(true)
+  phone                 String?
+  document              String?
+  photoDataUrl          String?
+  license               String?
+  licenseExpiresAt      String?
+  cargo                 String?
+  authorizedVehicleType String?
+  driverStatus          String   @default("Activo")
+  observations          String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  inspections Inspection[]
+  locationPings LocationPing[]
+  assignments DriverVehicleAssignment[] @relation("DriverAssignments")
+  trips       Trip[]
+  incidents   Incident[]
+  fuelLogs    FuelLog[]
+  expenses    Expense[]
+  referrals   Lead[] @relation("UserReferrals")
+}
+
+model Vehicle {
+  id              String   @id @default(cuid())
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plate           String   @unique
+  name            String
+  type            String
+  brand           String?
+  model           String?
+  color           String?
+  odometer        Int      @default(0)
+  status          String   @default("Operativa")
+  soat            String?
+  tecnomecanica   String?
+  maintenance     String?
+  traccarDeviceId Int?
+  active          Boolean  @default(true)
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  inspections   Inspection[]
+  assignments   DriverVehicleAssignment[]
+  locationPings LocationPing[]
+  trips         Trip[]
+  incidents     Incident[]
+  fuelLogs      FuelLog[]
+}
+
+model DriverVehicleAssignment {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  driverId  String
+  driver    User     @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  active    Boolean  @default(true)
+  notes     String?
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, active])
+  @@index([driverId, active])
+  @@index([vehicleId, active])
+}
+
+model Inspection {
+  id               String   @id @default(cuid())
+  companyId        String
+  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName         String?
+  vehicleId        String?
+  vehicle          Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleName      String?
+  mobilityType     String?
+  jornadaEstado    String?
+  placa            String
+  kilometraje      Int      @default(0)
+  medioTransporte  String?
+  bitacora         String?
+  resultado        String
+  analisisHSEQ     Json     @default("{}")
+  checklist        Json     @default("{}")
+  templateVersion  String?
+  headerFields     Json     @default("[]")
+  checklistItems   Json     @default("[]")
+  fotos            Json     @default("[]")
+  observaciones    String?
+  latitude         Float?
+  longitude        Float?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([companyId, createdAt])
+  @@index([companyId, placa])
+}
+
+model InspectionDraft {
+  id        String   @id
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String
+  vehicleId String?
+  placa     String?
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, userId])
+}
+
+model LocationPing {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName  String?
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  latitude  Float
+  longitude Float
+  accuracy  Float?
+  speed     Float    @default(0)
+  heading   Float?
+  course    Float?
+  battery   Float?
+  activity  String?
+  placa     String?
+  source    String?
+  tripId    String?
+  fixTime   DateTime?
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([companyId, placa])
+  @@index([userId, createdAt])
+}
+
+model Incident {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName    String?
+  vehicleId   String?
+  vehicle     Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  plate       String
+  type        String
+  description String?
+  severity    String   @default("Media")
+  latitude    Float?
+  longitude   Float?
+  photos      Json     @default("[]")
+  audioNote   String?
+  status      String   @default("Abierto")
+  source      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId, createdAt])
+}
+
+model Geofence {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  type      String
+  geometry  Json
+  rules     Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model TelemetryConfig {
+  id        String   @id @default(cuid())
+  companyId String   @unique
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChecklistConfig {
+  id        String   @id @default(cuid())
+  companyId String   @unique
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trip {
+  id            String    @id @default(cuid())
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName      String?
+  vehicleId     String?
+  vehicle       Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  plate         String?
+  status        String    @default("active")
+  destination   String?
+  routeName     String?
+  startLocation Json      @default("{}")
+  endLocation   Json?
+  distanceKm    Float?
+  durationMin   Int?
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([companyId, status])
+  @@index([userId, status])
+}
+
+model Route {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  source    String?
+  deviceId  String?
+  from      String?
+  to        String?
+  points    Int      @default(0)
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([companyId, createdAt])
+}
+
+model FuelLog {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName     String?
+  vehicleId    String?
+  vehicle      Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  plate        String?
+  station      String
+  fuelType     String
+  volume       Float
+  unit         String   @default("gal")
+  amount       Float
+  odometer     Int
+  photoDataUrl String?
+  latitude     Float?
+  longitude    Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([companyId, createdAt])
+}
+
+model Expense {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName     String?
+  type         String
+  amount       Float
+  currency     String   @default("COP")
+  description  String?
+  photoDataUrl String?
+  date         DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([companyId, date])
+}
+
+model NormativeNews {
+  id        String   @id @default(cuid())
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title     String
+  source    String?
+  date      DateTime @default(now())
+  priority  String   @default("Media")
+  tags      Json     @default("[]")
+  imageUrl  String?
+  summary   String
+  featured  Boolean  @default(false)
+  url       String?
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, date])
+}
+
+model NormativeAlert {
+  id        String    @id @default(cuid())
+  companyId String?
+  company   Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title     String
+  type      String?
+  dueDate   DateTime?
+  priority  String    @default("Media")
+  status    String    @default("Pendiente")
+  detail    String?
+  tags      Json      @default("[]")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([companyId, dueDate])
+}
+
+model NormativeDocument {
+  id          String   @id @default(cuid())
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title       String
+  type        String?
+  category    String?
+  status      String?
+  tags        Json     @default("[]")
+  url         String?
+  fileName    String?
+  fileDataUrl String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId, category])
+}
+
+model NormativeBase {
+  id        String   @id @default(cuid())
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  companyName     String?
+  contactName     String
+  email           String
+  phone           String?
+  city            String?
+  vehicleCount    Int?
+  operationType   String?
+  mainNeed        String?
+  classification  String   @default("Potencial Medio")
+  priority        String   @default("Media")
+  interest        String?
+  industryType    String?
+  estimatedValue  Float?
+  status          String   @default("Nuevo")
+  notes           String?
+  conversation    Json?
+  lang            String   @default("es")
+  source          String   @default("chatbot")
+  referredById    String?
+  referredBy      User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([referredById])
+}

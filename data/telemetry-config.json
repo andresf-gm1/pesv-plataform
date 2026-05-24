@@ -1,0 +1,39 @@
+{
+  "tracking": {
+    "minIntervalMs": 5000,
+    "maxIntervalMs": 30000,
+    "stationaryIntervalMs": 60000,
+    "minDistanceMeters": 12,
+    "minSpeedDeltaKmh": 8,
+    "highAccuracySpeedKmh": 12,
+    "maxQueueSize": 500,
+    "batchSize": 25,
+    "staleAfterMs": 120000
+  },
+  "maps": {
+    "engine": "maplibre",
+    "provider": "carto",
+    "style": "traffic",
+    "traffic": true,
+    "satellite": false,
+    "terrain": false,
+    "darkMode": false,
+    "routeColor": "#3B82F6",
+    "criticalRouteColor": "#ef4444",
+    "maptilerKey": "",
+    "openFreeMapBaseUrl": "https://tiles.openfreemap.org",
+    "customStyleUrl": "",
+    "trafficStyleUrl": "",
+    "mapboxToken": "",
+    "googleMapsKey": "",
+    "hereApiKey": ""
+  },
+  "analytics": {
+    "idleSpeedKmh": 3,
+    "idleMinutes": 5,
+    "overspeedKmh": 80,
+    "harshBrakeDeltaKmh": 25
+  },
+  "updatedAt": "2026-05-18T00:28:58.009Z",
+  "updatedBy": "u-admin"
+}

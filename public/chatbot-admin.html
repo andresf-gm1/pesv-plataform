@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Chatbot PESV</title>
+    <link rel="stylesheet" href="styles.css?v=20260518ux4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/runtime-config.js"></script>
+</head>
+<body class="dashboard-modern bg-app-bg text-app-text antialiased">
+    <script src="auth.js"></script>
+    <script>requireAuth(); renderTopbar("admin");</script>
+
+    <main class="page-shell lg:ml-[272px]">
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow"><i class="fa-solid fa-comments-dollar"></i> Sistema comercial</p>
+                <h1>Panel del asesor PESV</h1>
+                <p>Edita preguntas, respuestas, descuentos, enlaces, reglas de clasificación y campañas activas.</p>
+            </div>
+            <a class="secondary-btn" href="/crm"><i class="fa-solid fa-users-viewfinder"></i> Ver CRM</a>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title-row">
+                <h2>Configuración comercial</h2>
+                <span id="configState" class="status-pill">Cargando</span>
+            </div>
+            <form id="chatbotConfigForm" class="admin-inline-form">
+                <label>Campañas activas
+                    <select id="campaignsEnabled">
+                        <option value="true">Activadas</option>
+                        <option value="false">Desactivadas</option>
+                    </select>
+                </label>
+                <label>Número WhatsApp
+                    <input id="whatsappNumber" type="text" placeholder="573127894040">
+                </label>
+                <label>Correo alertas comerciales
+                    <input id="salesEmail" type="email" placeholder="ceoandres@icloud.com">
+                </label>
+                <label>Mensaje WhatsApp
+                    <textarea id="whatsappMessage" rows="2"></textarea>
+                </label>
+                <label>Descuento auditores / SST
+                    <textarea id="discountMessage" rows="2"></textarea>
+                </label>
+                <label>Pregunta inicial
+                    <textarea id="qWelcome" rows="3"></textarea>
+                </label>
+                <label>Pregunta empresa
+                    <input id="qCompany" type="text">
+                </label>
+                <label>Pregunta nombre
+                    <input id="qContactName" type="text">
+                </label>
+                <label>Pregunta correo
+                    <input id="qEmail" type="text">
+                </label>
+                <label>Pregunta teléfono
+                    <input id="qPhone" type="text">
+                </label>
+                <label>Pregunta ciudad
+                    <input id="qCity" type="text">
+                </label>
+                <label>Pregunta conductores
+                    <input id="qDrivers" type="text">
+                </label>
+                <label>Pregunta vehículos
+                    <input id="qVehicles" type="text">
+                </label>
+                <label>Pregunta actividad transporte
+                    <input id="qTransportActivity" type="text">
+                </label>
+                <label>Respuesta de cierre
+                    <textarea id="rClosing" rows="2"></textarea>
+                </label>
+                <label>Monitoreo sugerido
+                    <textarea id="rMonitoring" rows="3"></textarea>
+                </label>
+                <button class="primary-btn" type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar configuración</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title-row">
+                <h2>Reglas de clasificación PESV</h2>
+                <span class="status-pill warning">Resolución 20223040040595</span>
+            </div>
+            <div class="admin-table">
+                <div class="admin-table-header">
+                    <span>Tipo empresa</span><span>Básico</span><span>Estándar</span><span>Avanzado</span>
+                </div>
+                <div id="rulesPreview"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        let chatbotConfig = null;
+
+        document.addEventListener("DOMContentLoaded", loadChatbotConfig);
+        document.getElementById("chatbotConfigForm").addEventListener("submit", saveChatbotConfig);
+
+        async function loadChatbotConfig() {
+            const state = document.getElementById("configState");
+            const response = await apiFetch("/api/chatbot/config");
+            if (!response.ok) {
+                state.textContent = "Error";
+                return;
+            }
+            chatbotConfig = await response.json();
+            state.textContent = "Editable";
+            fillForm();
+            renderRules();
+        }
+
+        function fillForm() {
+            document.getElementById("campaignsEnabled").value = String(chatbotConfig.campaignsEnabled !== false);
+            document.getElementById("whatsappNumber").value = chatbotConfig.whatsappNumber || "";
+            document.getElementById("salesEmail").value = chatbotConfig.salesEmail || "";
+            document.getElementById("whatsappMessage").value = chatbotConfig.whatsappMessage || "";
+            document.getElementById("discountMessage").value = chatbotConfig.discountMessage || "";
+            document.getElementById("qWelcome").value = chatbotConfig.questions?.welcome || "";
+            document.getElementById("qCompany").value = chatbotConfig.questions?.company || "";
+            document.getElementById("qContactName").value = chatbotConfig.questions?.contactName || "";
+            document.getElementById("qEmail").value = chatbotConfig.questions?.email || "";
+            document.getElementById("qPhone").value = chatbotConfig.questions?.phone || "";
+            document.getElementById("qCity").value = chatbotConfig.questions?.city || "";
+            document.getElementById("qDrivers").value = chatbotConfig.questions?.drivers || "";
+            document.getElementById("qVehicles").value = chatbotConfig.questions?.vehicles || "";
+            document.getElementById("qTransportActivity").value = chatbotConfig.questions?.transportActivity || "";
+            document.getElementById("rClosing").value = chatbotConfig.responseTemplates?.closing || "";
+            document.getElementById("rMonitoring").value = chatbotConfig.responseTemplates?.monitoring || "";
+        }
+
+        function collectConfig() {
+            return {
+                ...chatbotConfig,
+                campaignsEnabled: document.getElementById("campaignsEnabled").value === "true",
+                whatsappNumber: document.getElementById("whatsappNumber").value.trim(),
+                salesEmail: document.getElementById("salesEmail").value.trim(),
+                whatsappMessage: document.getElementById("whatsappMessage").value.trim(),
+                discountMessage: document.getElementById("discountMessage").value.trim(),
+                questions: {
+                    welcome: document.getElementById("qWelcome").value.trim(),
+                    company: document.getElementById("qCompany").value.trim(),
+                    contactName: document.getElementById("qContactName").value.trim(),
+                    email: document.getElementById("qEmail").value.trim(),
+                    phone: document.getElementById("qPhone").value.trim(),
+                    city: document.getElementById("qCity").value.trim(),
+                    drivers: document.getElementById("qDrivers").value.trim(),
+                    vehicles: document.getElementById("qVehicles").value.trim(),
+                    transportActivity: document.getElementById("qTransportActivity").value.trim()
+                },
+                responseTemplates: {
+                    closing: document.getElementById("rClosing").value.trim(),
+                    monitoring: document.getElementById("rMonitoring").value.trim()
+                }
+            };
+        }
+
+        async function saveChatbotConfig(event) {
+            event.preventDefault();
+            const state = document.getElementById("configState");
+            state.textContent = "Guardando";
+            const response = await apiFetch("/api/chatbot/config", {
+                method: "PUT",
+                body: JSON.stringify(collectConfig())
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                state.textContent = result.message || "Error";
+                return;
+            }
+            chatbotConfig = result.config;
+            state.textContent = "Guardado";
+            renderRules();
+        }
+
+        function rangeText(rule) {
+            const vMax = rule.vehiclesMax ? rule.vehiclesMax : "+";
+            const dMax = rule.driversMax ? rule.driversMax : "+";
+            return `${rule.vehiclesMin || 0}-${vMax} veh. o ${rule.driversMin || 0}-${dMax} cond.`;
+        }
+
+        function renderRules() {
+            const transport = chatbotConfig.classification.transport;
+            const nonTransport = chatbotConfig.classification.nonTransport;
+            document.getElementById("rulesPreview").innerHTML = `
+                <div class="admin-record"><strong>Transporte terrestre</strong><span>${rangeText(transport.basic)}</span><span>${rangeText(transport.standard)}</span><span>${rangeText(transport.advanced)}</span></div>
+                <div class="admin-record"><strong>No transporte</strong><span>${rangeText(nonTransport.basic)}</span><span>${rangeText(nonTransport.standard)}</span><span>${rangeText(nonTransport.advanced)}</span></div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Interactiva - Fleet Command PESV</title>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        app: {
+                            bg: "#0F172A",
+                            primary: "#3B82F6",
+                            secondary: "#22C55E",
+                            text: "#FFFFFF",
+                            muted: "#94A3B8"
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css?v=20260518ux4">
+    <script src="/runtime-config.js"></script>
+</head>
+<body class="demo-page bg-app-bg text-app-text antialiased">
+    <div class="demo-container">
+        <div class="demo-header">
+            <img src="/logo.svg" alt="Fleet Command Logo" class="demo-logo">
+            <h1>Acceso Rápido a Demos</h1>
+            <p>Experimenta Fleet Command PESV en diferentes roles. Selecciona el perfil que deseas explorar.</p>
+        </div>
+
+        <div class="demo-grid">
+            <button class="demo-card" data-role="admin">
+                <i class="fa-solid fa-briefcase"></i>
+                <strong>Demo Empresa</strong>
+                <span>Gestión completa de flota y PESV.</span>
+            </button>
+            <button class="demo-card" data-role="conductor">
+                <i class="fa-solid fa-truck-medical"></i>
+                <strong>Demo Ambulancias</strong>
+                <span>Operación móvil y preoperacional.</span>
+            </button>
+            <button class="demo-card" data-role="supervisor">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+                <strong>Demo Transporte</strong>
+                <span>Monitoreo y asignación de vehículos.</span>
+            </button>
+            <button class="demo-card" data-role="auditor">
+                <i class="fa-solid fa-file-shield"></i>
+                <strong>Demo SST</strong>
+                <span>Auditoría y cumplimiento normativo.</span>
+            </button>
+            <button class="demo-card" data-role="supervisor">
+                <i class="fa-solid fa-location-dot"></i>
+                <strong>Demo Monitoreo Campo</strong>
+                <span>Seguimiento en tiempo real y geocercas.</span>
+            </button>
+        </div>
+
+        <div class="demo-footer">
+            <p>¿Necesitas una demo personalizada o más información?</p>
+            <a href="/login" class="secondary-btn">Ingresar con credenciales</a>
+            <a href="/" class="primary-btn">Volver a la página principal</a>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        // Reutilizamos apiFetch de auth.js
+        document.querySelectorAll('.demo-card').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const role = event.currentTarget.dataset.role;
+                event.currentTarget.disabled = true;
+                event.currentTarget.classList.add('loading');
+
+                try {
+                    const response = await apiFetch("/api/auth/demo-login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ role })
+                    });
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        localStorage.setItem("token", result.token);
+                        localStorage.setItem("user", JSON.stringify(result.user));
+                        localStorage.setItem("company", JSON.stringify(result.company));
+                        window.location.href = "/dashboard";
+                    } else {
+                        alert(result.message || "Error al iniciar demo.");
+                    }
+                } catch (error) {
+                    alert("Error de conexión al servidor.");
+                } finally {
+                    event.currentTarget.disabled = false;
+                    event.currentTarget.classList.remove('loading');
+                }
+            });
+        });
+    </script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+{
+  "updatedAt": "2026-05-17T16:49:08.213Z",
+  "summary": {
+    "title": "Centro Normativo PESV",
+    "subtitle": "Biblioteca viva para cumplimiento, seguridad vial empresarial y gestion documental en Colombia.",
+    "resolution": "Resolucion 20223040040595 de 2022",
+    "bullets": [
+      "Integra el PESV con SG-SST y buenas practicas ISO 39001.",
+      "Organiza el diseno, implementacion y verificacion en 24 pasos bajo PHVA.",
+      "Exige auditoria interna anual, seguimiento documental, evidencias digitales e indicadores.",
+      "Enfoca la gestion en riesgos viales, vehiculos seguros, actores viales y mejora continua."
+    ]
+  },
+  "cards": [
+    {
+      "title": "Que es el PESV",
+      "value": "Plan Estrategico de Seguridad Vial",
+      "detail": "Sistema de gestion para prevenir siniestros viales laborales y controlar riesgos en la operacion.",
+      "tag": "Base"
+    },
+    {
+      "title": "Obligados",
+      "value": "Entidades publicas y privadas",
+      "detail": "Organizaciones obligadas por la Ley 1503 de 2011, el Decreto Ley 2106 de 2019 y normas relacionadas.",
+      "tag": "Alcance"
+    },
+    {
+      "title": "Enfoque",
+      "value": "PHVA + SG-SST",
+      "detail": "Planear, Hacer, Verificar y Actuar con responsables, evidencias, indicadores y mejora continua.",
+      "tag": "Gestion"
+    },
+    {
+      "title": "Verificacion",
+      "value": "Autoridades competentes",
+      "detail": "Ministerio de Trabajo, Superintendencia de Transporte y organismos de transito, segun competencia.",
+      "tag": "Control"
+    }
+  ],
+  "phva": [
+    {
+      "phase": "Planear",
+      "steps": "1-8",
+      "detail": "Liderazgo, diagnostico, politica, objetivos, caracterizacion y plan anual de trabajo.",
+      "status": "Estrategico"
+    },
+    {
+      "phase": "Hacer",
+      "steps": "9-19",
+      "detail": "Competencias, controles operacionales, vehiculos seguros, atencion a victimas y gestion del cambio.",
+      "status": "Operacion"
+    },
+    {
+      "phase": "Verificar",
+      "steps": "20-22",
+      "detail": "Indicadores, reporte de autogestion, investigacion y auditoria interna anual.",
+      "status": "Evidencia"
+    },
+    {
+      "phase": "Actuar",
+      "steps": "23-24",
+      "detail": "Acciones preventivas, correctivas, mejora continua, comunicacion y participacion.",
+      "status": "Mejora"
+    }
+  ],
+  "laws": [
+    {
+      "id": "res-40595-2022",
+      "type": "Resolucion",
+      "title": "Resolucion 20223040040595 de 2022",
+      "entity": "Ministerio de Transporte",
+      "status": "Vigente",
+      "priority": "Alta",
+      "date": "2022-07-12",
+      "tags": [
+        "PESV",
+        "PHVA",
+        "24 pasos",
+        "SG-SST"
+      ],
+      "summary": "Adopta la metodologia para diseno, implementacion y verificacion de los Planes Estrategicos de Seguridad Vial.",
+      "url": "https://normograma.mintic.gov.co/mintic/compilacion/docs/resolucion_mintransporte_40595_2022.htm"
+    },
+    {
+      "id": "ley-1503-2011",
+      "type": "Ley",
+      "title": "Ley 1503 de 2011",
+      "entity": "Congreso de Colombia",
+      "status": "Vigente",
+      "priority": "Alta",
+      "date": "2011-12-29",
+      "tags": [
+        "Seguridad vial",
+        "PESV"
+      ],
+      "summary": "Promueve habitos, comportamientos y conductas seguras en la via; base legal del PESV.",
+      "url": "https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=45453"
+    },
+    {
+      "id": "ley-2050-2020",
+      "type": "Ley",
+      "title": "Ley 2050 de 2020",
+      "entity": "Congreso de Colombia",
+      "status": "Vigente",
+      "priority": "Alta",
+      "date": "2020-08-12",
+      "tags": [
+        "Verificacion",
+        "ANSV",
+        "Transito"
+      ],
+      "summary": "Modifica y adiciona la Ley 1503 de 2011; precisa competencias de verificacion del PESV.",
+      "url": "https://www1.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=139130"
+    },
+    {
+      "id": "decreto-2106-2019",
+      "type": "Decreto Ley",
+      "title": "Decreto Ley 2106 de 2019",
+      "entity": "Presidencia de Colombia",
+      "status": "Vigente",
+      "priority": "Media",
+      "date": "2019-11-22",
+      "tags": [
+        "Simplificacion",
+        "PESV"
+      ],
+      "summary": "Ajusta el articulo 12 de la Ley 1503 y habilita la metodologia expedida por MinTransporte.",
+      "url": ""
+    },
+    {
+      "id": "res-0312-2019",
+      "type": "Resolucion",
+      "title": "Resolucion 0312 de 2019",
+      "entity": "Ministerio de Trabajo",
+      "status": "Vigente",
+      "priority": "Media",
+      "date": "2019-02-13",
+      "tags": [
+        "SG-SST",
+        "Estandares minimos"
+      ],
+      "summary": "Define estandares minimos del SG-SST que se articulan con la gestion de seguridad vial.",
+      "url": ""
+    },
+    {
+      "id": "iso-39001",
+      "type": "Norma tecnica",
+      "title": "ISO 39001",
+      "entity": "ISO",
+      "status": "Referencia",
+      "priority": "Media",
+      "date": "2012-10-01",
+      "tags": [
+        "Sistema de gestion",
+        "Seguridad vial"
+      ],
+      "summary": "Referente internacional para sistemas de gestion de seguridad vial.",
+      "url": ""
+    }
+  ],
+  "news": [
+    {
+      "id": "news-40595",
+      "title": "Metodologia PESV: 24 pasos como eje de cumplimiento",
+      "source": "Centro Normativo",
+      "date": "2026-05-17",
+      "priority": "Alta",
+      "tags": [
+        "PESV",
+        "Resolucion 40595",
+        "Auditoria"
+      ],
+      "imageUrl": "",
+      "summary": "El tablero prioriza auditoria interna anual, evidencias digitales, indicadores y mejora continua para cerrar brechas de cumplimiento.",
+      "featured": true,
+      "url": ""
+    },
+    {
+      "id": "news-ansv",
+      "title": "Campanas y cultura vial empresarial",
+      "source": "ANSV / Interno",
+      "date": "2026-05-17",
+      "priority": "Media",
+      "tags": [
+        "ANSV",
+        "Capacitacion",
+        "Riesgo vial"
+      ],
+      "imageUrl": "",
+      "summary": "Use comunicados internos y campanas preventivas para reforzar habitos seguros en conductores, peatones y actores viales.",
+      "featured": false,
+      "url": ""
+    },
+    {
+      "id": "news-sst",
+      "title": "Integracion PESV con SG-SST y gestion documental",
+      "source": "SG-SST",
+      "date": "2026-05-17",
+      "priority": "Media",
+      "tags": [
+        "SG-SST",
+        "Documentos",
+        "Indicadores"
+      ],
+      "imageUrl": "",
+      "summary": "Centralice politicas, formatos, procedimientos, reportes y evidencias para facilitar verificaciones presenciales o virtuales.",
+      "featured": false,
+      "url": ""
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert-audit",
+      "title": "Auditoria interna anual PESV",
+      "type": "Auditoria",
+      "dueDate": "",
+      "priority": "Alta",
+      "status": "Pendiente",
+      "detail": "Programar auditoria anual y validar cumplimiento de los 24 pasos.",
+      "tags": [
+        "Paso 22",
+        "Evidencia"
+      ]
+    },
+    {
+      "id": "alert-docs",
+      "title": "Actualizacion documental PESV",
+      "type": "Documental",
+      "dueDate": "",
+      "priority": "Media",
+      "status": "Pendiente",
+      "detail": "Revisar matriz legal, politicas, procedimientos y registros digitales.",
+      "tags": [
+        "Biblioteca",
+        "SG-SST"
+      ]
+    },
+    {
+      "id": "alert-vehicles",
+      "title": "SOAT y tecnomecanica",
+      "type": "Vehiculos",
+      "dueDate": "",
+      "priority": "Alta",
+      "status": "Seguimiento",
+      "detail": "Cruzar vencimientos de vehiculos con alertas operativas.",
+      "tags": [
+        "SOAT",
+        "RTM"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-metodologia",
+      "title": "Metodologia PESV - Resolucion 40595",
+      "type": "Resolucion",
+      "category": "Normativa",
+      "status": "Base legal",
+      "tags": [
+        "PESV",
+        "24 pasos"
+      ],
+      "url": "https://normograma.mintic.gov.co/mintic/compilacion/docs/resolucion_mintransporte_40595_2022.htm",
+      "fileName": "",
+      "fileDataUrl": "",
+      "createdAt": "2026-05-17T16:49:08.213Z"
+    },
+    {
+      "id": "doc-politica",
+      "title": "Politica de seguridad vial empresarial",
+      "type": "Politica",
+      "category": "PESV",
+      "status": "Plantilla",
+      "tags": [
+        "Politica",
+        "Gerencia"
+      ],
+      "url": "",
+      "fileName": "",
+      "fileDataUrl": "",
+      "createdAt": "2026-05-17T16:49:08.213Z"
+    },
+    {
+      "id": "doc-procedimiento",
+      "title": "Procedimiento de auditoria interna PESV",
+      "type": "Procedimiento",
+      "category": "Auditoria",
+      "status": "Plantilla",
+      "tags": [
+        "Auditoria",
+        "PHVA"
+      ],
+      "url": "",
+      "fileName": "",
+      "fileDataUrl": "",
+      "createdAt": "2026-05-17T16:49:08.213Z"
+    }
+  ]
+}

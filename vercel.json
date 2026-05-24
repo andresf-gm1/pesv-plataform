@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "installCommand": "npm install",
+  "buildCommand": "npm run build:frontend",
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/dashboard", "destination": "/monitor.html" },
+    { "source": "/monitor", "destination": "/monitor.html" },
+    { "source": "/intelligence", "destination": "/intelligence.html" },
+    { "source": "/referidos", "destination": "/aliados.html" },
+    { "source": "/crm", "destination": "/crm.html" },
+    { "source": "/reports", "destination": "/dashboard.html" },
+    { "source": "/admin", "destination": "/ajustes.html" },
+    { "source": "/demo", "destination": "/demo.html" },
+    { "source": "/app", "destination": "/app-download.html" },
+    { "source": "/driver", "destination": "/mobile.html" },
+    { "source": "/normativo", "destination": "/normativo.html" },
+    { "source": "/preoperacional", "destination": "/preoperacional.html" },
+    { "source": "/tracker", "destination": "/tracker.html" },
+    { "source": "/usuarios", "destination": "/usuarios.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

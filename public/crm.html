@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Comercial - Fleet Command</title>
+    <link rel="stylesheet" href="styles.css?v=20260518ux4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/runtime-config.js"></script>
+</head>
+<body class="dashboard-modern bg-app-bg text-app-text antialiased">
+    <script src="auth.js"></script>
+    <script>requireAuth(); renderTopbar("crm");</script>
+
+    <main class="page-shell lg:ml-[272px]">
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow"><i class="fa-solid fa-handshake-angle"></i> Gestión de Clientes</p>
+                <h1>CRM Comercial</h1>
+                <p>Centraliza y gestiona tus leads, clientes potenciales y el embudo de ventas.</p>
+            </div>
+            <div class="flex gap-3">
+                <button class="secondary-btn"><i class="fa-solid fa-chart-simple"></i> Ver Estadísticas</button>
+                <button class="primary-btn"><i class="fa-solid fa-plus"></i> Nuevo Lead Manual</button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <article class="metric-card">
+                <span>Leads Nuevos (Hoy)</span>
+                <strong id="newLeadsCount">0</strong>
+                <small>Captados por chatbot y formularios</small>
+            </article>
+            <article class="metric-card">
+                <span>Potencial Alto</span>
+                <strong id="highPotentialCount">0</strong>
+                <small>Oportunidades de alto valor</small>
+            </article>
+            <article class="metric-card">
+                <span>Cierre Estimado</span>
+                <strong id="estimatedRevenue">$0</strong>
+                <small>Valor proyectado de ventas</small>
+            </article>
+        </div>
+
+        <section class="panel">
+            <div class="panel-title-row">
+                <h2><i class="fa-solid fa-users-viewfinder"></i> Clientes Potenciales</h2>
+                <div class="flex gap-2">
+                    <input type="search" id="leadSearch" placeholder="Buscar lead..." class="bg-slate-800 border-slate-700 p-2 rounded text-sm">
+                    <select id="leadStatusFilter" class="bg-slate-800 border-slate-700 p-2 rounded text-sm">
+                        <option value="">Todos los estados</option>
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="Contactado">Contactado</option>
+                        <option value="Calificado">Calificado</option>
+                        <option value="En Negociacion">En Negociación</option>
+                        <option value="Cerrado Ganado">Cerrado Ganado</option>
+                        <option value="Cerrado Perdido">Cerrado Perdido</option>
+                    </select>
+                </div>
+            </div>
+            <div id="leadsTableContainer" class="admin-table">
+                <div class="admin-table-header">
+                    <span>Contacto</span>
+                    <span>Empresa</span>
+                    <span>Tamaño / Interés</span>
+                    <span>Clasificación</span>
+                    <span>Estado</span>
+                    <span>Acciones</span>
+                </div>
+                <div id="leadsList">
+                    <p class="empty-state">Cargando leads...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        let allLeads = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLeads();
+            document.getElementById('leadSearch').addEventListener('input', renderLeads);
+            document.getElementById('leadStatusFilter').addEventListener('change', renderLeads);
+        });
+
+        async function loadLeads() {
+            const res = await apiFetch("/api/crm/leads");
+            if (res.ok) {
+                allLeads = await res.json();
+                renderLeads();
+            } else {
+                document.getElementById('leadsList').innerHTML = '<p class="empty-state">Error al cargar leads.</p>';
+            }
+        }
+
+        function renderLeads() {
+            const query = document.getElementById('leadSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('leadStatusFilter').value;
+
+            const filteredLeads = allLeads.filter(lead => {
+                const matchesQuery = !query || (lead.contactName?.toLowerCase().includes(query) || lead.companyName?.toLowerCase().includes(query) || lead.email?.toLowerCase().includes(query));
+                const matchesStatus = !statusFilter || lead.status === statusFilter;
+                return matchesQuery && matchesStatus;
+            });
+
+            document.getElementById('leadsList').innerHTML = filteredLeads.map(lead => {
+                const summary = getLeadSummary(lead);
+                return `
+                <div class="admin-record">
+                    <div><strong>${lead.contactName}</strong><small>${lead.email}</small></div>
+                    <span>${lead.companyName || 'N/A'}</span>
+                    <span>${summary?.driverCount || 0} cond. · ${lead.vehicleCount || 0} veh. · ${lead.mainNeed || lead.industryType || 'N/A'}</span>
+                    <span class="status-pill ${lead.classification?.includes('AVANZADO') ? 'danger' : lead.classification?.includes('ESTÁNDAR') ? 'warning' : 'success'}">${lead.classification}</span>
+                    <span class="status-pill">${lead.status}</span>
+                    <div class="flex gap-2">
+                        <button class="secondary-btn text-xs" onclick="viewLeadDetails('${lead.id}')"><i class="fa-solid fa-eye"></i></button>
+                        <button class="secondary-btn text-xs" onclick="editLead('${lead.id}')"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                </div>
+            `}).join('') || '<p class="empty-state">No se encontraron leads.</p>';
+
+            // Update KPI cards
+            document.getElementById('newLeadsCount').textContent = allLeads.filter(l => l.status === 'Nuevo').length;
+            document.getElementById('highPotentialCount').textContent = allLeads.filter(l => l.classification?.includes('AVANZADO') || l.classification?.includes('ESTÁNDAR')).length;
+            document.getElementById('estimatedRevenue').textContent = `$${allLeads.reduce((sum, l) => sum + (l.estimatedValue || 0), 0).toLocaleString('es-CO')}`;
+        }
+
+        function viewLeadDetails(leadId) {
+            const lead = allLeads.find(item => item.id === leadId);
+            if (!lead) return;
+            const conversation = Array.isArray(lead.conversation) ? lead.conversation : [];
+            const summary = getLeadSummary(lead);
+            const detail = [
+                `Empresa: ${lead.companyName || 'N/A'}`,
+                `Contacto: ${lead.contactName || 'N/A'} - ${lead.email || 'N/A'} - ${lead.phone || 'N/A'}`,
+                `Ciudad: ${lead.city || summary?.city || 'N/A'}`,
+                `Perfil: ${lead.operationType || lead.industryType || 'N/A'}`,
+                `Clasificación: ${lead.classification || 'N/A'}`,
+                `Conductores: ${summary?.driverCount || 'N/A'}`,
+                `Vehículos: ${lead.vehicleCount || summary?.vehicleCount || 'N/A'}`,
+                `Riesgo: ${summary?.operationalRisk || 'N/A'}`,
+                `Interés: ${lead.interest || lead.mainNeed || 'N/A'}`,
+                '',
+                'Conversación:',
+                ...conversation.map(row => `${row.sender === 'bot' ? 'Asesor' : 'Lead'}: ${row.text}`)
+            ].join('\n');
+            alert(detail);
+        }
+
+        function getLeadSummary(lead) {
+            try {
+                return JSON.parse(lead.notes || '{}').chatbotState?.leadSummary || null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function editLead(leadId) {
+            // Implement modal or new page for editing lead
+            alert('Editar lead: ' + leadId);
+        }
+    </script>
+</body>
+</html>
