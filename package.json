@@ -4,7 +4,7 @@
   "description": "Demo de monitoreo GPS, preoperacional y PESV para flotas",
   "main": "server.js",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "scripts": {
     "start": "node server.js",
