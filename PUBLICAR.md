@@ -19,7 +19,7 @@ Configuracion esperada:
 
 Cuando Vercel termine, el enlace publico normalmente quedara parecido a:
 
-https://pesv-plataform.vercel.app
+https://pesv-plataform-ai.vercel.app
 
 ## Enlace para publicar el backend
 
@@ -45,4 +45,4 @@ Ya esta disponible Fleet Command PESV, una plataforma para monitoreo GPS, preope
 
 Solicita una demo aqui:
 
-https://pesv-plataform.vercel.app/demo
+https://pesv-plataform-ai.vercel.app/demo
