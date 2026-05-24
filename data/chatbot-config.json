@@ -1,0 +1,34 @@
+{
+  "campaignsEnabled": true,
+  "whatsappNumber": "573127894040",
+  "whatsappMessage": "Hola, vengo desde la plataforma PESV y quiero más información.",
+  "salesEmail": "ceoandres@icloud.com",
+  "discountMessage": "🎁 Tenemos descuentos especiales y beneficios comerciales para auditores PESV y profesionales SST aliados.",
+  "questions": {
+    "welcome": "Hola 👋 Bienvenido a nuestra plataforma PESV inteligente.\n¿En qué perfil te identificas?",
+    "company": "Perfecto. ¿Cuál es el nombre de tu empresa o marca comercial?",
+    "contactName": "¿Cuál es tu nombre completo?",
+    "email": "¿Cuál es tu correo empresarial?",
+    "phone": "¿Cuál es tu teléfono o WhatsApp?",
+    "city": "¿En qué ciudad se encuentra la operación?",
+    "drivers": "¿Cuántos conductores tiene la operación?",
+    "vehicles": "¿Cuántos vehículos tiene la operación?",
+    "transportActivity": "¿La actividad principal es transporte terrestre automotor?"
+  },
+  "responseTemplates": {
+    "closing": "📲 Un asesor especializado puede ayudarte ahora mismo.",
+    "monitoring": "Monitoreo sugerido: tablero gerencial, alertas preventivas, preoperacionales digitales y seguimiento de indicadores PESV."
+  },
+  "classification": {
+    "transport": {
+      "basic": { "vehiclesMin": 11, "vehiclesMax": 19, "driversMin": 2, "driversMax": 19 },
+      "standard": { "vehiclesMin": 20, "vehiclesMax": 50, "driversMin": 20, "driversMax": 50 },
+      "advanced": { "vehiclesMin": 51, "driversMin": 51 }
+    },
+    "nonTransport": {
+      "basic": { "vehiclesMin": 11, "vehiclesMax": 49, "driversMin": 2, "driversMax": 49 },
+      "standard": { "vehiclesMin": 50, "vehiclesMax": 100, "driversMin": 50, "driversMax": 100 },
+      "advanced": { "vehiclesMin": 101, "driversMin": 101 }
+    }
+  }
+}

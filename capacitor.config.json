@@ -1,0 +1,9 @@
+{
+  "appId": "com.fleetcommand.pesv",
+  "appName": "Fleet Command",
+  "webDir": "mobile-dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

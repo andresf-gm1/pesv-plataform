@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inteligencia Operacional - Fleet Command</title>
+    <link rel="stylesheet" href="styles.css?v=20260518ux4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/runtime-config.js"></script>
+</head>
+<body class="dashboard-modern bg-app-bg text-app-text antialiased">
+    <script src="auth.js"></script>
+    <script>requireAuth(); renderTopbar("intelligence");</script>
+
+    <main class="page-shell lg:ml-[272px]">
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow"><i class="fa-solid fa-microchip"></i> Módulo de Análisis Avanzado</p>
+                <h1>Inteligencia Operacional</h1>
+                <p>Generación de informes ejecutivos, KPIs y detección automática de riesgos PESV.</p>
+            </div>
+            <div class="flex gap-3">
+                <button class="secondary-btn" onclick="exportData('csv')"><i class="fa-solid fa-file-csv"></i> Exportar Datos</button>
+                <button class="primary-btn" onclick="openReportGenerator()"><i class="fa-solid fa-file-pdf"></i> Generar Informe Pro</button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <article class="metric-card">
+                <span>Riesgo Global Flota</span>
+                <strong id="globalRiskScore">0%</strong>
+                <div class="progress-mini"><div id="riskBar" class="bar"></div></div>
+                <small id="riskStatus">Cargando análisis...</small>
+            </article>
+            <article class="metric-card">
+                <span>Cumplimiento PESV</span>
+                <strong id="complianceRate">0%</strong>
+                <small>Basado en preoperacionales</small>
+            </article>
+            <article class="metric-card">
+                <span>Eficiencia Operativa</span>
+                <strong id="efficiencyScore">0%</strong>
+                <small>Velocidad y tiempos muertos</small>
+            </article>
+        </div>
+
+        <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div class="xl:col-span-2 space-y-6">
+                <article class="panel">
+                    <div class="panel-title-row">
+                        <h2><i class="fa-solid fa-robot"></i> Análisis IA de Desempeño</h2>
+                        <span class="status-pill success">Tiempo Real</span>
+                    </div>
+                    <div id="aiInsightsContainer" class="insight-list">
+                        <p class="empty-state">Procesando tendencias de la flota...</p>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-title-row">
+                        <h2>Estado de Activos y Mantenimiento</h2>
+                    </div>
+                    <div id="fleetTableContainer" class="admin-table">
+                        <!-- Dinámico -->
+                    </div>
+                </article>
+            </div>
+
+            <aside class="space-y-6">
+                <article class="panel">
+                    <h2>Generador de Informes</h2>
+                    <form id="reportGenForm" class="space-y-4 mt-4">
+                        <label class="block">Tipo de Informe
+                            <select id="repType" class="w-full bg-slate-800 border-slate-700 p-2 rounded">
+                                <option value="pesv">Informe Ejecutivo PESV</option>
+                                <option value="ruta">Trazabilidad de Ruta</option>
+                                <option value="conductor">Comportamiento Conductor</option>
+                                <option value="mantenimiento">Mantenimiento y Activos</option>
+                                <option value="iso">Cumplimiento ISO 39001</option>
+                            </select>
+                        </label>
+                        <label class="block">Vehículo
+                            <select id="repVehicle" class="w-full bg-slate-800 border-slate-700 p-2 rounded"></select>
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label>Desde<input type="date" id="repFrom" class="w-full bg-slate-800 border-slate-700 p-1 rounded"></label>
+                            <label>Hasta<input type="date" id="repTo" class="w-full bg-slate-800 border-slate-700 p-1 rounded"></label>
+                        </div>
+                        <button type="submit" class="primary-btn w-full">Generar PDF Corporativo</button>
+                    </form>
+                </article>
+
+                <article class="panel bg-gradient-to-br from-slate-900 to-blue-900 border-blue-500/30">
+                    <h2 class="text-blue-400"><i class="fa-solid fa-envelope-open-text"></i> Programación</h2>
+                    <p class="text-sm text-slate-300 mt-2">Configura el envío automático de estos reportes a gerencia o ARL.</p>
+                    <div class="mt-4 flex flex-col gap-2">
+                        <label class="flex items-center gap-2"><input type="checkbox"> Reporte Diario (07:00 AM)</label>
+                        <label class="flex items-center gap-2"><input type="checkbox"> Consolidado Semanal</label>
+                        <button class="secondary-btn text-xs">Configurar destinatarios</button>
+                    </div>
+                </article>
+            </aside>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadIntelligenceData();
+            document.getElementById('reportGenForm').addEventListener('submit', triggerPDFReport);
+        });
+    </script>
+</body>
+</html>

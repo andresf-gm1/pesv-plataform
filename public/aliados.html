@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Aliados - Fleet Command</title>
+    <link rel="stylesheet" href="styles.css?v=20260518ux4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/runtime-config.js"></script>
+</head>
+<body class="dashboard-modern bg-app-bg text-app-text antialiased">
+    <script src="auth.js"></script>
+    <script>requireAuth(); renderTopbar("referidos");</script>
+
+    <main class="page-shell lg:ml-[272px]">
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow"><i class="fa-solid fa-medal"></i> Programa de Aliados Premium</p>
+                <h1>Gestión de Referidos</h1>
+                <p>Monitorea el estado de tus empresas referidas y tus comisiones proyectadas.</p>
+            </div>
+            <div class="flex gap-3">
+                <button class="primary-btn" onclick="copyReferralLink()"><i class="fa-solid fa-link"></i> Copiar mi enlace</button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <article class="metric-card">
+                <span>Empresas Referidas</span>
+                <strong id="refCount">0</strong>
+                <small>Total de registros con tu código</small>
+            </article>
+            <article class="metric-card">
+                <span>En Negociación</span>
+                <strong id="pendingCount">0</strong>
+                <small>Prospectos activos</small>
+            </article>
+            <article class="metric-card">
+                <span>Comisiones Estimadas</span>
+                <strong id="estimatedComm" class="text-app-secondary">$0</strong>
+                <small>Basado en cierres efectivos (20%)</small>
+            </article>
+        </div>
+
+        <section class="panel">
+            <div class="panel-title-row">
+                <h2><i class="fa-solid fa-list-check"></i> Estatus de Referidos</h2>
+                <span class="status-pill success">Actualizado hoy</span>
+            </div>
+            <div id="referralsTable" class="admin-table">
+                <div class="admin-table-header">
+                    <span>Empresa / Contacto</span>
+                    <span>Fecha Registro</span>
+                    <span>Estado Comercial</span>
+                    <span>Potencial</span>
+                </div>
+                <div id="referralsList">
+                    <p class="empty-state">Cargando tus referidos...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadReferrals);
+
+        async function loadReferrals() {
+            const res = await apiFetch("/api/aliados/referrals");
+            if (!res.ok) return;
+            const data = await res.json();
+
+            document.getElementById('refCount').textContent = data.length;
+            document.getElementById('pendingCount').textContent = data.filter(r => r.status !== 'Cerrado Ganado').length;
+            
+            // Cálculo de comisión demo (20% del valor estimado)
+            const totalComm = data.reduce((sum, r) => sum + (r.estimatedValue || 0) * 0.20, 0);
+            document.getElementById('estimatedComm').textContent = `$${totalComm.toLocaleString('es-CO')}`;
+
+            document.getElementById('referralsList').innerHTML = data.map(ref => `
+                <div class="admin-record">
+                    <div><strong>${ref.companyName || 'Independiente'}</strong><small>${ref.contactName}</small></div>
+                    <span>${new Date(ref.createdAt).toLocaleDateString()}</span>
+                    <span class="status-pill">${ref.status}</span>
+                    <span class="status-pill ${ref.classification === 'Potencial Alto' ? 'success' : 'warning'}">${ref.classification}</span>
+                </div>
+            `).join('') || '<p class="empty-state">Aún no has referido empresas. ¡Usa tu enlace para empezar!</p>';
+        }
+
+        function copyReferralLink() {
+            const user = getUser();
+            const url = `${window.location.origin}/?ref=${user.id}`;
+            navigator.clipboard.writeText(url);
+            showNotification("Enlace copiado", "Comparte este link con tus clientes para trackear tus comisiones.", "success");
+        }
+    </script>
+</body>
+</html>

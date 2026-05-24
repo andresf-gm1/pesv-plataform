@@ -1,0 +1,789 @@
+{
+  "sections": [
+    {
+      "id": "motor",
+      "name": "Motor",
+      "color": "#0f766e",
+      "icon": "engine",
+      "order": 10,
+      "active": true
+    },
+    {
+      "id": "seguridad",
+      "name": "Seguridad",
+      "color": "#dc2626",
+      "icon": "shield",
+      "order": 20,
+      "active": true
+    },
+    {
+      "id": "carroceria",
+      "name": "Carroceria",
+      "color": "#2563eb",
+      "icon": "truck",
+      "order": 30,
+      "active": true
+    },
+    {
+      "id": "salud",
+      "name": "Conductor",
+      "color": "#7c3aed",
+      "icon": "user",
+      "order": 40,
+      "active": true
+    }
+  ],
+  "headerFields": [
+    {
+      "id": "kilometraje",
+      "label": "Odometro",
+      "type": "number",
+      "required": true,
+      "order": 10,
+      "placeholder": "Kilometraje actual",
+      "options": []
+    },
+    {
+      "id": "ruta",
+      "label": "Ruta",
+      "type": "text",
+      "required": false,
+      "order": 20,
+      "placeholder": "Ruta programada",
+      "options": []
+    },
+    {
+      "id": "turno",
+      "label": "Turno",
+      "type": "select",
+      "required": false,
+      "order": 30,
+      "placeholder": "",
+      "options": [
+        "Manana",
+        "Tarde",
+        "Noche"
+      ]
+    },
+    {
+      "id": "observacionesGenerales",
+      "label": "Observaciones generales",
+      "type": "text",
+      "required": false,
+      "order": 40,
+      "placeholder": "Novedades iniciales",
+      "options": []
+    }
+  ],
+  "common": [
+    {
+      "id": "estadoAnimo",
+      "label": "Estado de animo",
+      "description": "",
+      "responseType": "select",
+      "options": [
+        "Excelente",
+        "Regular",
+        "Fatigado",
+        "Riesgo alto"
+      ],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "none",
+        "value": "",
+        "severity": "red"
+      },
+      "active": true,
+      "order": 60,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "horasDormidas",
+      "label": "Horas dormidas",
+      "description": "",
+      "responseType": "number",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "none",
+        "value": "",
+        "severity": "red"
+      },
+      "active": true,
+      "order": 70,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "luces",
+      "label": "Luces",
+      "description": "",
+      "responseType": "condition",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "in",
+        "value": [
+          "Malo"
+        ],
+        "severity": "red"
+      },
+      "active": true,
+      "order": 80,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "observacionesSalud",
+      "label": "Observaciones de salud",
+      "description": "",
+      "responseType": "text",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": false,
+      "criticalCondition": {
+        "operator": "none",
+        "value": "",
+        "severity": "red"
+      },
+      "active": true,
+      "order": 80,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "frenos",
+      "label": "Frenos",
+      "description": "",
+      "responseType": "condition",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "in",
+        "value": [
+          "Malo"
+        ],
+        "severity": "red"
+      },
+      "active": true,
+      "order": 90,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "llantas",
+      "label": "Llantas",
+      "description": "",
+      "responseType": "condition",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "in",
+        "value": [
+          "Malo"
+        ],
+        "severity": "red"
+      },
+      "active": true,
+      "order": 100,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "direccion",
+      "label": "Direccion",
+      "description": "",
+      "responseType": "condition",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "in",
+        "value": [
+          "Malo"
+        ],
+        "severity": "red"
+      },
+      "active": true,
+      "order": 110,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "bateria",
+      "label": "Bateria",
+      "description": "",
+      "responseType": "condition",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": true,
+      "criticalCondition": {
+        "operator": "in",
+        "value": [
+          "Malo"
+        ],
+        "severity": "red"
+      },
+      "active": true,
+      "order": 120,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    },
+    {
+      "id": "documentosFisicos",
+      "label": "Documentos fisicos",
+      "description": "",
+      "responseType": "condition",
+      "options": [],
+      "unit": "",
+      "sectionId": "seguridad",
+      "critical": false,
+      "criticalCondition": {
+        "operator": "in",
+        "value": [
+          "Malo"
+        ],
+        "severity": "red"
+      },
+      "active": true,
+      "order": 130,
+      "required": false,
+      "allowPhoto": false,
+      "allowNote": true,
+      "checklistItems": [],
+      "helpText": "",
+      "companyIds": [],
+      "driverIds": [],
+      "vehicleIds": []
+    }
+  ],
+  "byVehicleType": {
+    "Moto": [
+      {
+        "id": "casco",
+        "label": "Casco certificado",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 20,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "chaleco",
+        "label": "Chaleco reflectivo",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": false,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 30,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      }
+    ],
+    "Carro": [
+      {
+        "id": "aceite",
+        "label": "Aceite de motor",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": false,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 20,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "refrigerante",
+        "label": "Refrigerante",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": false,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 30,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      }
+    ],
+    "Camioneta": [
+      {
+        "id": "cargaAsegurada",
+        "label": "Carga asegurada",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 20,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "dobleTraccion",
+        "label": "Sistema 4x4",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": false,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 30,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      }
+    ],
+    "Ambulancia TAB": [
+      {
+        "id": "sirena",
+        "label": "Sirena",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 40,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "evidenciaOxigeno",
+        "label": "Foto manometro oxigeno",
+        "description": "",
+        "responseType": "photo",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "none",
+          "value": "",
+          "severity": "red"
+        },
+        "active": true,
+        "order": 40,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "camilla",
+        "label": "Camilla y anclajes",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 50,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "oxigeno",
+        "label": "Sistema de oxigeno",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 60,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "bioseguridad",
+        "label": "Elementos de bioseguridad",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 70,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "estado-presion-neumaticos-demo",
+        "label": "Estado presion neumaticos",
+        "description": "",
+        "responseType": "number",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "none",
+          "value": "",
+          "severity": "red"
+        },
+        "active": true,
+        "order": 95,
+        "required": true,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      }
+    ],
+    "Ambulancia TAM": [
+      {
+        "id": "sirena",
+        "label": "Sirena",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 40,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "firmaResponsable",
+        "label": "Firma digital responsable",
+        "description": "",
+        "responseType": "signature",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "none",
+          "value": "",
+          "severity": "red"
+        },
+        "active": true,
+        "order": 40,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "desfibrilador",
+        "label": "Desfibrilador",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 50,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "monitor",
+        "label": "Monitor / equipo medico",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 60,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      },
+      {
+        "id": "oxigeno",
+        "label": "Sistema de oxigeno",
+        "description": "",
+        "responseType": "condition",
+        "options": [],
+        "unit": "",
+        "sectionId": "seguridad",
+        "critical": true,
+        "criticalCondition": {
+          "operator": "in",
+          "value": [
+            "Malo"
+          ],
+          "severity": "red"
+        },
+        "active": true,
+        "order": 70,
+        "required": false,
+        "allowPhoto": false,
+        "allowNote": true,
+        "checklistItems": [],
+        "helpText": "",
+        "companyIds": [],
+        "driverIds": [],
+        "vehicleIds": []
+      }
+    ]
+  },
+  "updatedAt": "2026-05-17T12:05:04.242Z",
+  "updatedBy": "u-admin"
+}
