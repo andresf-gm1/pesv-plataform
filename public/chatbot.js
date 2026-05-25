@@ -7,6 +7,7 @@ let conversationId = null;
 let chatbotOpen = false;
 let currentLang = "es";
 let lastActions = [];
+let offlineMode = false;
 
 const chatbotContainer = document.createElement("div");
 chatbotContainer.id = "fleet-chatbot-container";
@@ -135,9 +136,37 @@ function showTyping() {
     optionsContainer.innerHTML = '<div class="fleet-chatbot-typing"><span></span><span></span><span></span></div>';
 }
 
+function renderOfflineChatbotFallback() {
+    offlineMode = true;
+    addMessage(
+        "bot",
+        "Estoy en modo demo web mientras se conecta el servidor PESV. Puedo llevarte directo a una demo o abrir WhatsApp con el mensaje listo para que un asesor te atienda.",
+        ["Ver demo interactiva", "Hablar por WhatsApp"],
+        [
+            {
+                type: "link",
+                label: "Ver demo interactiva",
+                url: "/demo"
+            },
+            {
+                type: "whatsapp",
+                label: "Hablar por WhatsApp",
+                url: "https://wa.me/573127894040?text=Hola%2C%20quiero%20una%20demo%20de%20Fleet%20Command%20PESV%20y%20necesito%20asesor%C3%ADa%20comercial."
+            }
+        ]
+    );
+}
+
 async function sendMessage(text) {
     const cleanText = String(text || "").trim();
     if (!cleanText) return;
+
+    if (offlineMode) {
+        addMessage("user", cleanText);
+        textInput.value = "";
+        renderOfflineChatbotFallback();
+        return;
+    }
 
     addMessage("user", cleanText);
     textInput.value = "";
@@ -158,12 +187,7 @@ async function sendMessage(text) {
         }
     } catch (error) {
         console.error("Error sending chatbot message:", error);
-        addMessage("bot", "No pude conectar con el servidor. Tambien puedes escribirnos por WhatsApp.");
-        renderOptions(["Hablar por WhatsApp"], [{
-            type: "whatsapp",
-            label: "Hablar por WhatsApp",
-            url: "https://wa.me/573127894040?text=Hola%2C%20necesito%20asesor%C3%ADa%20comercial%20PESV.%20No%20se%20pudo%20cargar%20mi%20resumen%20autom%C3%A1tico%2C%20por%20favor%20ay%C3%BAdame%20a%20clasificar%20mi%20empresa."
-        }]);
+        renderOfflineChatbotFallback();
     }
 }
 
@@ -186,7 +210,7 @@ async function startChatbotConversation() {
         }
     } catch (error) {
         console.error("Error starting chatbot:", error);
-        addMessage("bot", "No pude conectar con el servidor para iniciar el asesor PESV.");
+        renderOfflineChatbotFallback();
     }
 }
 

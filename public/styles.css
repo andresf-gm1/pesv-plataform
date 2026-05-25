@@ -602,3 +602,18 @@
     bottom: 80px;
   }
 }
+
+/* Public launch fixes */
+.secondary-btn,
+.secondary-link,
+.preview-control button {
+  color: #0f172a !important;
+}
+
+.fleet-chatbot-option-button {
+  color: #111827 !important;
+}
+
+.fleet-chatbot-option-button.whatsapp {
+  color: #052e16 !important;
+}
