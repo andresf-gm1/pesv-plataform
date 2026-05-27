@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte demo PESV | Fleet Command</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/styles.css?v=20260518ux4">
+    <style>
+        body { background:#f4f7fb; color:#172033; }
+        .report-demo { width:min(920px, calc(100% - 32px)); margin:32px auto; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:28px; box-shadow:0 18px 44px rgba(15,23,42,.12); }
+        .report-demo h1 { margin:0 0 8px; }
+        .report-demo .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:22px 0; }
+        .report-demo article { border:1px solid #e2e8f0; border-radius:8px; padding:14px; background:#f8fafc; }
+        .report-demo strong, .report-demo span { display:block; }
+        .report-demo span { color:#64748b; font-size:13px; }
+        .report-demo table { width:100%; border-collapse:collapse; margin-top:18px; }
+        .report-demo th, .report-demo td { padding:10px; border-bottom:1px solid #e2e8f0; text-align:left; }
+        .report-demo .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+        @media (max-width: 720px) { .report-demo .grid { grid-template-columns:1fr 1fr; } }
+    </style>
+</head>
+<body>
+    <main class="report-demo">
+        <p class="eyebrow">Reporte demo compartible</p>
+        <h1 id="title">Reporte PESV de vehiculo</h1>
+        <p>Vista HTML de respaldo para enlaces publicos de reporte en Vercel. En backend productivo este enlace puede generar PDF real.</p>
+        <section class="grid">
+            <article><span>Riesgo</span><strong>Bajo</strong></article>
+            <article><span>Cumplimiento</span><strong>94%</strong></article>
+            <article><span>Alertas</span><strong>2</strong></article>
+            <article><span>Inspecciones</span><strong>4</strong></article>
+        </section>
+        <table>
+            <thead><tr><th>Control</th><th>Estado</th><th>Observacion</th></tr></thead>
+            <tbody>
+                <tr><td>Preoperacional</td><td>Apto con novedad</td><td>Seguimiento preventivo activo.</td></tr>
+                <tr><td>Combustible</td><td>Monitoreado</td><td>Registro de tanqueos y rendimiento disponible.</td></tr>
+                <tr><td>GPS</td><td>Online</td><td>Ruta, velocidad y ubicacion visibles en dashboard.</td></tr>
+            </tbody>
+        </table>
+        <div class="actions">
+            <a class="primary-link" href="/reports">Volver al dashboard</a>
+            <a class="secondary-link" href="/dashboard">Abrir monitoreo</a>
+        </div>
+    </main>
+    <script>
+        const parts = location.pathname.split("/");
+        const plate = decodeURIComponent(parts[4] || "AMB001").toUpperCase();
+        document.getElementById("title").textContent = `Reporte PESV ${plate}`;
+    </script>
+</body>
+</html>
