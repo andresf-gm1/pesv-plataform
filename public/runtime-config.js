@@ -1,5 +1,6 @@
 (function () {
-    if (typeof window.localStorage === "undefined") {
+    const needsStoragePolyfill = !window.localStorage || typeof window.localStorage.getItem !== "function";
+    if (needsStoragePolyfill) {
         const memoryStore = {};
         const storage = {
             getItem: key => Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null,
@@ -9,7 +10,7 @@
         };
         Object.defineProperty(window, "localStorage", { value: storage, configurable: true });
     }
-    if (typeof window.sessionStorage === "undefined") {
+    if (!window.sessionStorage || typeof window.sessionStorage.getItem !== "function") {
         Object.defineProperty(window, "sessionStorage", { value: window.localStorage, configurable: true });
     }
 })();
