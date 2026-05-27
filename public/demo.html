@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo Interactiva - Fleet Command PESV</title>
+    <meta name="description" content="Demo publica SaaS PESV con monitoreo GPS, dashboard ejecutivo, app conductor, CRM, reportes, alertas, combustible e incidentes simulados.">
+    <meta property="og:title" content="Demo Fleet Command PESV">
+    <meta property="og:description" content="Explora una demo profesional de plataforma PESV, GPS y seguridad vial para flotas.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/social-card.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="/demo">
     <script>
         window.tailwind = window.tailwind || {};
         window.tailwind.config = {
@@ -31,35 +38,42 @@
     <div class="demo-container">
         <div class="demo-header">
             <img src="/logo.svg" alt="Fleet Command Logo" class="demo-logo">
-            <h1>Acceso Rápido a Demos</h1>
-            <p>Experimenta Fleet Command PESV en diferentes roles. Selecciona el perfil que deseas explorar.</p>
+            <h1>Demo SaaS PESV lista para explorar</h1>
+            <p>Entra a una operación simulada con flota, conductores, GPS, reportes, CRM, combustible, incidentes y app conductor sin depender de PostgreSQL.</p>
+            <div class="demo-route-bar" aria-label="Rutas principales de la demo">
+                <a href="/dashboard">Monitoreo</a>
+                <a href="/reports">Dashboard</a>
+                <a href="/driver">App conductor</a>
+                <a href="/crm">CRM</a>
+                <a href="/app">PWA</a>
+            </div>
         </div>
 
         <div class="demo-grid">
             <button class="demo-card" data-role="admin">
                 <i class="fa-solid fa-briefcase"></i>
-                <strong>Demo Empresa</strong>
-                <span>Gestión completa de flota y PESV.</span>
+                <strong>Centro de Control</strong>
+                <span>Mapa vivo, alertas, rutas, geocercas y detalle de flota.</span>
             </button>
             <button class="demo-card" data-role="conductor">
                 <i class="fa-solid fa-truck-medical"></i>
-                <strong>Demo Ambulancias</strong>
-                <span>Operación móvil y preoperacional.</span>
+                <strong>App Conductor</strong>
+                <span>Preoperacional, GPS, combustible, incidentes y SOS.</span>
             </button>
             <button class="demo-card" data-role="supervisor">
                 <i class="fa-solid fa-truck-ramp-box"></i>
-                <strong>Demo Transporte</strong>
-                <span>Monitoreo y asignación de vehículos.</span>
+                <strong>Dashboard Ejecutivo</strong>
+                <span>Indicadores PESV, riesgo, reportes y cumplimiento.</span>
             </button>
             <button class="demo-card" data-role="auditor">
                 <i class="fa-solid fa-file-shield"></i>
-                <strong>Demo SST</strong>
-                <span>Auditoría y cumplimiento normativo.</span>
+                <strong>CRM Comercial</strong>
+                <span>Leads simulados, potencial, clasificación y embudo.</span>
             </button>
             <button class="demo-card" data-role="supervisor">
                 <i class="fa-solid fa-location-dot"></i>
-                <strong>Demo Monitoreo Campo</strong>
-                <span>Seguimiento en tiempo real y geocercas.</span>
+                <strong>Reportes y Auditoría</strong>
+                <span>Conductores, combustible, incidentes y evidencias.</span>
             </button>
         </div>
 
@@ -73,11 +87,12 @@
     <script src="auth.js"></script>
     <script>
         // Reutilizamos apiFetch de auth.js
-        document.querySelectorAll('.demo-card').forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const role = event.currentTarget.dataset.role;
-                event.currentTarget.disabled = true;
-                event.currentTarget.classList.add('loading');
+        document.querySelectorAll('.demo-card').forEach(card => {
+            card.addEventListener('click', async (event) => {
+                const clickedCard = event.currentTarget;
+                const role = clickedCard.dataset.role;
+                clickedCard.disabled = true;
+                clickedCard.classList.add('loading');
 
                 try {
                     const response = await apiFetch("/api/auth/demo-login", {
@@ -98,8 +113,8 @@
                 } catch (error) {
                     alert("Error de conexión al servidor.");
                 } finally {
-                    event.currentTarget.disabled = false;
-                    event.currentTarget.classList.remove('loading');
+                    clickedCard.disabled = false;
+                    clickedCard.classList.remove('loading');
                 }
             });
         });
