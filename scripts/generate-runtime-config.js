@@ -28,7 +28,13 @@ const output = `(function () {
     }
 })();
 window.FLEET_CONFIG = ${JSON.stringify(config, null, 4)};
-window.FLEET_CONFIG.apiBase = window.FLEET_CONFIG.apiBase || localStorage.getItem("apiBase") || "";
+let storedApiBase = "";
+try {
+    storedApiBase = window.localStorage && typeof window.localStorage.getItem === "function"
+        ? window.localStorage.getItem("apiBase") || ""
+        : "";
+} catch (error) {}
+window.FLEET_CONFIG.apiBase = window.FLEET_CONFIG.apiBase || storedApiBase || "";
 (function () {
     const config = window.FLEET_CONFIG || {};
     const apiBase = String(config.apiBase || "").replace(/\\/$/, "");
