@@ -21,9 +21,16 @@
     { "source": "/normativo", "destination": "/normativo.html" },
     { "source": "/preoperacional", "destination": "/preoperacional.html" },
     { "source": "/tracker", "destination": "/tracker.html" },
-    { "source": "/usuarios", "destination": "/usuarios.html" }
+    { "source": "/usuarios", "destination": "/usuarios.html" },
+    { "source": "/api/reports/vehicle/:plate/pdf", "destination": "/demo-report.html" }
   ],
   "headers": [
+    {
+      "source": "/runtime-config.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

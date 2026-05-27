@@ -3997,22 +3997,34 @@ app.post("/api/payments/checkout", authRequired, (req, res) => {
 });
 
 app.get("/api/demo/bootstrap", catchAsync(async (req, res) => {
-    const company = await prisma.company.findUnique({ where: { id: "empresa-demo" } });
-    const vehicles = await prisma.vehicle.findMany({ where: { companyId: "empresa-demo" } });
-    const users = await prisma.user.findMany({ where: { companyId: "empresa-demo", role: { in: ["conductor", "supervisor"] } } });
-    const geofences = await prisma.geofence.findMany({ where: { companyId: "empresa-demo" } });
+    let company;
+    let vehicles;
+    let users;
+    let geofences;
+    try {
+        company = await prisma.company.findUnique({ where: { id: "empresa-demo" } });
+        vehicles = await prisma.vehicle.findMany({ where: { companyId: "empresa-demo" } });
+        users = await prisma.user.findMany({ where: { companyId: "empresa-demo", role: { in: ["conductor", "supervisor"] } } });
+        geofences = await prisma.geofence.findMany({ where: { companyId: "empresa-demo" } });
+    } catch (error) {
+        const db = readFallbackDb();
+        company = fallbackCompany(db, "empresa-demo");
+        vehicles = (db.vehicles || []).map(fallbackVehiclePayload);
+        users = (db.users || []).filter(user => ["conductor", "supervisor"].includes(user.role));
+        geofences = db.geofences || [];
+    }
 
     res.json({
-        company,
+        company: company || { id: "empresa-demo", name: "Demo Logistica PESV", plan: "Demo comercial" },
         credentials: [
             { role: "administrador", email: "admin@demo.com", password: "Admin123" },
             { role: "supervisor", email: "supervisor@demo.com", password: "Supervisor123" },
             { role: "conductor", email: "conductor@demo.com", password: "Ambulancia123" },
             { role: "auditor PESV", email: "auditor@demo.com", password: "Auditor123" }
         ],
-        vehicles: vehicles,
+        vehicles: vehicles || [],
         drivers: users.map(sanitizeUser),
-        geofences: geofences,
+        geofences: geofences || [],
         checklist: defaultChecklistConfig(),
         entrypoints: {
             landing: "/",
