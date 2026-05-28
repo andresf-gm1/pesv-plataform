@@ -3,9 +3,9 @@
   "whatsappNumber": "573127894040",
   "whatsappMessage": "Hola, vengo desde la plataforma PESV y quiero más información.",
   "salesEmail": "ceoandres@icloud.com",
-  "discountMessage": "🎁 Tenemos descuentos especiales y beneficios comerciales para auditores PESV y profesionales SST aliados.",
+  "discountMessage": "Tenemos beneficios comerciales para auditores PESV y profesionales SST aliados.",
   "questions": {
-    "welcome": "Hola 👋 Bienvenido a nuestra plataforma PESV inteligente.\n¿En qué perfil te identificas?",
+    "welcome": "Hola. Bienvenido a nuestra plataforma PESV inteligente.\n¿En qué perfil te identificas?",
     "company": "Perfecto. ¿Cuál es el nombre de tu empresa o marca comercial?",
     "contactName": "¿Cuál es tu nombre completo?",
     "email": "¿Cuál es tu correo empresarial?",
@@ -16,7 +16,7 @@
     "transportActivity": "¿La actividad principal es transporte terrestre automotor?"
   },
   "responseTemplates": {
-    "closing": "📲 Un asesor especializado puede ayudarte ahora mismo.",
+    "closing": "Un asesor especializado puede ayudarte ahora mismo.",
     "monitoring": "Monitoreo sugerido: tablero gerencial, alertas preventivas, preoperacionales digitales y seguimiento de indicadores PESV."
   },
   "classification": {

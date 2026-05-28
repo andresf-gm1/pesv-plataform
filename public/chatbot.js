@@ -136,17 +136,63 @@ function showTyping() {
     optionsContainer.innerHTML = '<div class="fleet-chatbot-typing"><span></span><span></span><span></span></div>';
 }
 
-function renderOfflineChatbotFallback() {
+function getLocalAdvisorAnswer(message) {
+    const text = String(message || "").toLowerCase();
+    const topics = [
+        {
+            keys: ["gps", "rastreo", "ubicacion", "ubicación", "seguimiento"],
+            answer: "El rastreo GPS permite ver vehículos en vivo, velocidad, recorrido, estado de conexión y evidencia de ruta. También soporta GPS propio desde la app y conexión con telemetría central."
+        },
+        {
+            keys: ["monitoreo", "control", "central", "operacion", "operación"],
+            answer: "El centro de monitoreo consolida flota, alertas, conductores, incidentes, riesgo y cumplimiento PESV en una sola vista para tomar decisiones operativas."
+        },
+        {
+            keys: ["geocerca", "geocercas", "zona", "zonas"],
+            answer: "Las geocercas permiten crear zonas de riesgo, descanso, operación o restricción. El sistema puede alertar entradas, salidas, exceso de velocidad o incumplimiento de parada."
+        },
+        {
+            keys: ["reporte", "reportes", "pdf", "indicador", "kpi"],
+            answer: "Los reportes muestran KPIs, auditoría de conductores, alertas, inspecciones, riesgo y PDF por vehículo para soporte gerencial o auditorías PESV."
+        },
+        {
+            keys: ["seguridad", "riesgo", "fatiga", "incidente", "emergencia"],
+            answer: "La plataforma prioriza seguridad vial: detecta riesgo, fatiga, fallas críticas, incidentes, emergencias SOS y hallazgos preoperacionales con trazabilidad."
+        },
+        {
+            keys: ["soporte", "ayuda", "contacto"],
+            answer: "Para soporte se puede revisar la configuración desde Admin, validar conexión GPS, revisar usuarios y solicitar acompañamiento por WhatsApp con el resumen del caso."
+        },
+        {
+            keys: ["plan", "planes", "precio", "funcionalidad", "funcionalidades"],
+            answer: "Los planes cubren desde preoperacionales y GPS básico hasta centro de monitoreo, roles multiempresa, reportes ejecutivos, geocercas, telemetría e inteligencia operacional."
+        }
+    ];
+    return topics.find(topic => topic.keys.some(key => text.includes(key)))?.answer
+        || "Puedo orientarte sobre rastreo GPS, monitoreo, geocercas, reportes, seguridad, soporte, planes y funcionalidades. Cuéntame qué necesitas revisar primero.";
+}
+
+function renderOfflineChatbotFallback(message = "") {
     offlineMode = true;
     addMessage(
         "bot",
-        "Estoy en modo demo web mientras se conecta el servidor PESV. Puedo llevarte directo a una demo o abrir WhatsApp con el mensaje listo para que un asesor te atienda.",
-        ["Ver demo interactiva", "Hablar por WhatsApp"],
+        `${getLocalAdvisorAnswer(message)}\n\nTambién puedo abrir una demo o WhatsApp si quieres avanzar con un asesor.`,
+        ["Rastreo GPS", "Geocercas", "Reportes", "Hablar por WhatsApp"],
         [
             {
                 type: "link",
-                label: "Ver demo interactiva",
-                url: "/demo"
+                label: "Rastreo GPS",
+                url: "/dashboard"
+            },
+            {
+                type: "link",
+                label: "Geocercas",
+                url: "/dashboard"
+            },
+            {
+                type: "link",
+                label: "Reportes",
+                url: "/reports"
             },
             {
                 type: "whatsapp",
@@ -164,7 +210,7 @@ async function sendMessage(text) {
     if (offlineMode) {
         addMessage("user", cleanText);
         textInput.value = "";
-        renderOfflineChatbotFallback();
+        renderOfflineChatbotFallback(cleanText);
         return;
     }
 
@@ -187,7 +233,7 @@ async function sendMessage(text) {
         }
     } catch (error) {
         console.error("Error sending chatbot message:", error);
-        renderOfflineChatbotFallback();
+        renderOfflineChatbotFallback(cleanText);
     }
 }
 

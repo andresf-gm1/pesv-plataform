@@ -3165,8 +3165,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 /**
  * Procesa los pings de ubicación para detectar eventos de geocercas.
  */
-function processGeofenceEvents(ping) {
-    const geofences = getGeofences(ping.companyId); // This needs to be awaited
+async function processGeofenceEvents(ping) {
+    const geofences = await getGeofences(ping.companyId);
     const vehicleId = ping.userId; // Usamos userId como identificador de vehículo/conductor para el estado
     const currentState = vehicleGeofenceState.get(vehicleId) || { currentGeofenceId: null, entryTime: null, lastSpeed: 0 };
     
