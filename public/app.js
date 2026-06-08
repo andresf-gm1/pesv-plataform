@@ -1,167 +1,847 @@
-async function renderNormativoCenter() {
-    const container = document.getElementById("normativoDynamicContent");
+(function () {
+  "use strict";
+
+  const MAP_CENTER = [-74.0817, 4.6097];
+  const MAP_STYLES = {
+    standard: "https://tiles.openfreemap.org/styles/liberty",
+    dark: "https://tiles.openfreemap.org/styles/dark",
+    terrain: "https://tiles.openfreemap.org/styles/fiord",
+    traffic: "https://tiles.openfreemap.org/styles/bright",
+    satellite: {
+      version: 8,
+      sources: {
+        esri: {
+          type: "raster",
+          tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+          tileSize: 256,
+          attribution: "Tiles Esri"
+        }
+      },
+      layers: [{ id: "esri-satellite", type: "raster", source: "esri" }]
+    }
+  };
+  const RISK_COLORS = {
+    Bajo: "#22c55e",
+    Medio: "#f59e0b",
+    Alto: "#f97316",
+    Critico: "#ef4444",
+    "Crítico": "#ef4444"
+  };
+
+  let map = null;
+  let mapReady = false;
+  let mapStyleKey = "dark";
+  let userRole = "guest";
+  let telemetryConfig = null;
+  let lastVehicles = [];
+  let lastGeofences = [];
+  let statusChart = null;
+  let fleetPopup = null;
+  let drawing = false;
+  let draftCoords = [];
+  let selectedGeofenceId = null;
+  let editMarkers = [];
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function getToken() {
+    try {
+      return localStorage.getItem("token") || window.__demoToken || "";
+    } catch (error) {
+      return window.__demoToken || "";
+    }
+  }
+
+  async function apiFetch(url, options = {}) {
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    };
+    const token = getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401) {
+      try { localStorage.clear(); } catch (error) {}
+      const overlay = $("loginOverlay");
+      if (overlay) overlay.style.display = "flex";
+    }
+    return response;
+  }
+
+  function showNotification(title, message, type = "info") {
+    const container = $("notificationContainer") || document.body.appendChild(Object.assign(document.createElement("div"), { id: "notificationContainer" }));
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<strong>${escapeHtml(title)}</strong><p>${escapeHtml(message)}</p>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 400);
+    }, 4200);
+  }
+
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+  }
+
+  function injectControlStyles() {
+    if ($("fleetCommandRuntimeStyles")) return;
+    const style = document.createElement("style");
+    style.id = "fleetCommandRuntimeStyles";
+    style.textContent = `
+      .map-editor-panel{position:absolute;left:18px;bottom:18px;z-index:850;width:min(390px,calc(100vw - 36px));border:1px solid rgba(148,163,184,.22);border-radius:8px;background:rgba(7,15,29,.9);color:#f8fafc;box-shadow:0 20px 60px rgba(2,6,23,.38);backdrop-filter:blur(18px);padding:14px;display:grid;gap:10px}
+      .map-editor-panel strong{font-size:.95rem}.map-editor-panel small{color:#b6c4d7;line-height:1.45}
+      .map-editor-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.map-editor-actions button,.map-editor-panel input{min-height:38px;border:1px solid rgba(148,163,184,.22);border-radius:8px;background:rgba(255,255,255,.08);color:#f8fafc;padding:8px}
+      .map-editor-actions button.primary{background:#2563eb}.map-editor-actions button.danger{background:#dc2626}.map-editor-actions button:disabled{opacity:.45;cursor:not-allowed}
+      .risk-gauge{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;margin-top:12px}.risk-ring{--risk:0;--risk-color:#22c55e;width:96px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--risk-color) calc(var(--risk)*1%),rgba(148,163,184,.2) 0);box-shadow:inset 0 0 0 10px rgba(7,15,29,.98)}
+      .risk-ring span{font-size:1.3rem;font-weight:900;color:#fff}.risk-bars{display:grid;gap:8px}.risk-bar-row{display:grid;grid-template-columns:72px 1fr 42px;gap:8px;align-items:center;font-size:.78rem;color:#cbd5e1}.risk-bar-track{height:8px;border-radius:999px;background:rgba(148,163,184,.18);overflow:hidden}.risk-bar-fill{height:100%;border-radius:999px;background:var(--bar-color,#38bdf8)}
+      .geofence-popup{display:grid;gap:8px}.geofence-popup button{border:0;border-radius:8px;padding:8px 10px;background:#2563eb;color:white}.geofence-popup button.danger{background:#dc2626}
+      .vertex-marker{width:18px;height:18px;border:2px solid white;border-radius:50%;background:#38bdf8;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:grab}
+      @media(max-width:860px){.map-editor-panel{position:relative;left:auto;bottom:auto;width:auto;margin:12px}.map-editor-actions{grid-template-columns:1fr 1fr}.risk-gauge{grid-template-columns:1fr}.risk-ring{margin:auto}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function riskLevel(score) {
+    if (score >= 75) return "Crítico";
+    if (score >= 55) return "Alto";
+    if (score >= 30) return "Medio";
+    return "Bajo";
+  }
+
+  function riskColor(scoreOrLevel) {
+    if (typeof scoreOrLevel === "number") return RISK_COLORS[riskLevel(scoreOrLevel)];
+    return RISK_COLORS[scoreOrLevel] || "#22c55e";
+  }
+
+  async function loadIntelligenceData() {
+    const target = $("globalRiskScore");
+    if (!target) return;
+    try {
+      const res = await apiFetch("/api/reports/intelligence/performance");
+      if (!res.ok) throw new Error("No se pudo cargar inteligencia");
+      const data = await res.json();
+      const score = Math.max(0, Math.min(100, Number(data.summary?.globalRisk || 0)));
+      const compliance = Math.max(0, Math.min(100, Number(data.summary?.compliance || 0)));
+      const level = riskLevel(score);
+      const color = riskColor(score);
+      target.textContent = `${score}%`;
+      setText("complianceRate", `${compliance}%`);
+      setText("efficiencyScore", `${Math.max(0, 100 - score)}%`);
+      setText("riskStatus", `${level} - ${data.fleet?.length || 0} activos analizados`);
+      const riskBar = $("riskBar");
+      if (riskBar) {
+        riskBar.style.width = `${score}%`;
+        riskBar.style.background = color;
+      }
+      renderRiskGauge(score, data);
+      renderIntelligenceInsights(data);
+      renderFleetRiskTable(data);
+    } catch (error) {
+      target.textContent = "N/D";
+      setText("riskStatus", "Sin conexion con analitica");
+      const insights = $("aiInsightsContainer");
+      if (insights) insights.innerHTML = `<p class="empty-state">No se pudo cargar el analisis. Revisa API y autenticacion.</p>`;
+    }
+  }
+
+  function renderRiskGauge(score, data) {
+    const card = $("globalRiskScore")?.closest(".metric-card");
+    if (!card || card.querySelector(".risk-gauge")) return;
+    const bands = [
+      ["Bajo", Math.min(score, 30), "#22c55e"],
+      ["Medio", score > 30 ? Math.min(score - 30, 25) : 0, "#f59e0b"],
+      ["Alto", score > 55 ? Math.min(score - 55, 20) : 0, "#f97316"],
+      ["Critico", score > 75 ? score - 75 : 0, "#ef4444"]
+    ];
+    card.insertAdjacentHTML("beforeend", `
+      <div class="risk-gauge">
+        <div class="risk-ring" style="--risk:${score};--risk-color:${riskColor(score)}"><span>${score}%</span></div>
+        <div class="risk-bars">
+          ${bands.map(([label, value, color]) => `
+            <div class="risk-bar-row"><span>${label}</span><div class="risk-bar-track"><div class="risk-bar-fill" style="width:${Math.max(4, value * 2)}%;--bar-color:${color}"></div></div><b>${Math.round(value)}</b></div>
+          `).join("")}
+        </div>
+      </div>
+    `);
+  }
+
+  function renderIntelligenceInsights(data) {
+    const container = $("aiInsightsContainer");
     if (!container) return;
+    const rows = (data.fleet || []).flatMap(vehicle => (vehicle.aiObservations || []).map(obs => ({
+      plate: vehicle.plate,
+      risk: Number(vehicle.riskScore || 0),
+      obs
+    }))).slice(0, 10);
+    container.innerHTML = rows.length ? rows.map(item => `
+      <div class="insight-row">
+        <div><strong>${escapeHtml(item.plate)} - ${item.risk}%</strong><span>${escapeHtml(item.obs)}</span></div>
+        <i class="signal-dot ${item.risk >= 60 ? "danger" : item.risk >= 35 ? "warn" : ""}"></i>
+      </div>
+    `).join("") : `<p class="empty-state">Operacion sin novedades criticas detectadas.</p>`;
+  }
 
-    const res = await apiFetch("/api/normativo");
-    const data = await res.json();
-
-    container.innerHTML = `
-        <div class="normativo-grid">
-            <section class="normativo-main-card">
-                <div class="badge-legal">Resolución 20223040040595</div>
-                <h2>${data.summary.title}</h2>
-                <p>${data.summary.subtitle}</p>
-                <div class="phva-steps">
-                    ${data.phva.map(p => `
-                        <div class="phva-box">
-                            <strong>${p.phase}</strong>
-                            <span>Pasos ${p.steps}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
-
-            <aside class="news-panel">
-                <h3><i class="icon-news"></i> Noticias & Actualizaciones</h3>
-                ${data.news.map(n => `
-                    <div class="news-card ${n.featured ? 'featured' : ''}">
-                        <span class="tag-${n.priority.toLowerCase()}">${n.priority}</span>
-                        <h4>${n.title}</h4>
-                        <p>${n.summary.substring(0, 80)}...</p>
-                        <small>${n.date} · ${n.source}</small>
-                    </div>
-                `).join('')}
-            </aside>
-        </div>
-
-        <div class="legal-alerts-row">
-            ${data.alerts.map(a => `
-                <div class="legal-alert-mini">
-                    <i class="icon-alert"></i>
-                    <div><strong>${a.title}</strong><span>Status: ${a.status}</span></div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-async function loadIntelligenceData() {
-    const res = await apiFetch("/api/reports/intelligence/performance");
-    if (!res.ok) return;
-    const data = await res.json();
-
-    // KPIs principales
-    document.getElementById("globalRiskScore").textContent = `${data.summary.globalRisk}%`;
-    document.getElementById("riskBar").style.width = `${data.summary.globalRisk}%`;
-    document.getElementById("complianceRate").textContent = `${data.summary.compliance}%`;
-    document.getElementById("efficiencyScore").textContent = `${100 - data.summary.globalRisk}%`;
-
-    // Análisis IA
-    const insightsContainer = document.getElementById("aiInsightsContainer");
-    insightsContainer.innerHTML = data.fleet.flatMap(v => v.aiObservations.map(obs => ({ obs, plate: v.plate, risk: v.riskScore })))
-        .slice(0, 10)
-        .map(item => `
-            <div class="insight-item ${item.risk > 60 ? 'danger' : ''}">
-                <i class="fa-solid ${item.risk > 60 ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i>
-                <div>
-                    <strong>${item.plate}</strong>
-                    <p class="text-sm text-slate-300">${item.obs}</p>
-                </div>
-            </div>
-        `).join('') || '<p class="empty-state">Operación óptima sin novedades detectadas.</p>';
-
-    // Tabla de flota
-    const table = document.getElementById("fleetTableContainer");
+  function renderFleetRiskTable(data) {
+    const table = $("fleetTableContainer");
+    if (!table) return;
     table.innerHTML = `
-        <div class="admin-table-header">
-            <span>Vehículo</span><span>Kilometraje</span><span>Próximo Mant.</span><span>Riesgo</span>
+      <div class="admin-table-header"><span>Vehiculo</span><span>Kilometraje</span><span>Proximo mant.</span><span>Riesgo</span></div>
+      ${(data.fleet || []).map(vehicle => `
+        <div class="admin-record">
+          <strong>${escapeHtml(vehicle.plate)}</strong>
+          <span>${Number(vehicle.distanceKm || 0)} km hoy</span>
+          <span>${Number(vehicle.nextMaintenance || 0)} km</span>
+          <span class="status-pill ${Number(vehicle.riskScore || 0) >= 60 ? "danger" : "success"}">${Number(vehicle.riskScore || 0)}%</span>
         </div>
-        ${data.fleet.map(v => `
-            <div class="admin-record">
-                <strong>${v.plate}</strong>
-                <span>${v.distanceKm} km hoy</span>
-                <span class="${v.nextMaintenance < 500 ? 'text-orange-500 font-bold' : ''}">${v.nextMaintenance} km</span>
-                <span class="status-pill ${v.riskScore > 60 ? 'danger' : 'success'}">${v.riskScore}%</span>
-            </div>
-        `).join('')}
+      `).join("") || `<p class="empty-state">Sin activos para analizar.</p>`}
     `;
-
-    // Selector de vehículos en reporte
-    const sel = document.getElementById("repVehicle");
-    if (sel) {
-        sel.innerHTML = '<option value="all">Toda la flota</option>' +
-            data.fleet.map(v => `<option value="${v.plate}">${v.plate}</option>`).join('');
+    const selector = $("repVehicle");
+    if (selector) {
+      selector.innerHTML = `<option value="all">Toda la flota</option>${(data.fleet || []).map(vehicle => `<option value="${escapeHtml(vehicle.plate)}">${escapeHtml(vehicle.plate)}</option>`).join("")}`;
     }
-}
+  }
 
-function triggerPDFReport(e) {
-    e.preventDefault();
-    const type = document.getElementById("repType").value;
-    const plate = document.getElementById("repVehicle").value;
-    const from = document.getElementById("repFrom").value;
-    const to = document.getElementById("repTo").value;
+  function triggerPDFReport(event) {
+    event.preventDefault();
+    const plate = $("repVehicle")?.value || "all";
+    const type = $("repType")?.value || "pesv";
+    const from = $("repFrom")?.value || "";
+    const to = $("repTo")?.value || "";
+    const targetPlate = plate === "all" ? (document.querySelector("#repVehicle option:nth-child(2)")?.value || "AMB001") : plate;
+    window.open(`/api/reports/vehicle/${encodeURIComponent(targetPlate)}/pdf?token=${encodeURIComponent(getToken())}&type=${encodeURIComponent(type)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, "_blank");
+    showNotification("Generando informe", "El PDF corporativo se abrio en una nueva pestana.", "success");
+  }
 
-    const url = `/api/reports/vehicle/${plate}/pdf?token=${getToken()}&type=${type}&from=${from}&to=${to}`;
-    window.open(url, '_blank');
-    showNotification("Generando Informe", "Tu reporte corporativo se está procesando.", "success");
-}
-async function loadIntelligenceData() {
-    const res = await apiFetch("/api/reports/intelligence/performance");
-    if (!res.ok) return;
-    const data = await res.json();
+  async function exportData(format = "csv") {
+    const url = `/api/export/monitored?format=${encodeURIComponent(format)}&token=${encodeURIComponent(getToken())}`;
+    window.open(url, "_blank");
+  }
 
-    // KPIs principales
-    document.getElementById("globalRiskScore").textContent = `${data.summary.globalRisk}%`;
-    document.getElementById("riskBar").style.width = `${data.summary.globalRisk}%`;
-    document.getElementById("complianceRate").textContent = `${data.summary.compliance}%`;
-    document.getElementById("efficiencyScore").textContent = `${100 - data.summary.globalRisk}%`;
+  function openReportGenerator() {
+    $("reportGenForm")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
-    // Análisis IA
-    const insightsContainer = document.getElementById("aiInsightsContainer");
-    insightsContainer.innerHTML = data.fleet.flatMap(v => v.aiObservations.map(obs => ({ obs, plate: v.plate, risk: v.riskScore })))
-        .slice(0, 10)
-        .map(item => `
-            <div class="insight-item ${item.risk > 60 ? 'danger' : ''}">
-                <i class="fa-solid ${item.risk > 60 ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i>
-                <div>
-                    <strong>${item.plate}</strong>
-                    <p class="text-sm text-slate-300">${item.obs}</p>
-                </div>
-            </div>
-        `).join('') || '<p class="empty-state">Operación óptima sin novedades detectadas.</p>';
+  function resolveMapStyle(styleKey) {
+    const key = styleKey || telemetryConfig?.maps?.style || mapStyleKey || "dark";
+    if (telemetryConfig?.maps?.provider === "custom" && telemetryConfig.maps.customStyleUrl) return telemetryConfig.maps.customStyleUrl;
+    if (telemetryConfig?.maps?.provider === "maptiler" && telemetryConfig.maps.maptilerKey) {
+      const maptilerStyle = key === "satellite" ? "hybrid" : key === "dark" ? "streets-v2-dark" : key === "terrain" ? "outdoor-v2" : "streets-v2";
+      return `https://api.maptiler.com/maps/${maptilerStyle}/style.json?key=${encodeURIComponent(telemetryConfig.maps.maptilerKey)}`;
+    }
+    return MAP_STYLES[key] || MAP_STYLES.dark;
+  }
 
-    // Tabla de flota
-    const table = document.getElementById("fleetTableContainer");
-    table.innerHTML = `
-        <div class="admin-table-header">
-            <span>Vehículo</span><span>Kilometraje</span><span>Próximo Mant.</span><span>Riesgo</span>
+  function initMonitorMap() {
+    if (!$("map") || !window.maplibregl || map) return;
+    injectControlStyles();
+    map = new maplibregl.Map({
+      container: "map",
+      style: resolveMapStyle("dark"),
+      center: MAP_CENTER,
+      zoom: 11,
+      pitch: 36,
+      bearing: -8,
+      attributionControl: false,
+      antialias: true,
+      maxZoom: 20
+    });
+    map.on("load", () => {
+      mapReady = true;
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottomright");
+      map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottomleft");
+      map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottomright");
+      ensureMapLayers();
+      bindMapEvents();
+      renderFleet(lastVehicles);
+      renderGeofences(lastGeofences);
+    });
+    map.on("style.load", () => {
+      ensureMapLayers();
+      renderFleet(lastVehicles);
+      renderGeofences(lastGeofences);
+      renderDraft();
+    });
+    addGeofencePanel();
+  }
+
+  function ensureMapLayers() {
+    if (!mapReady || !map.isStyleLoaded()) return;
+    addGeoJsonSource("geofences", emptyCollection());
+    addGeoJsonSource("geofence-draft", emptyCollection());
+    addGeoJsonSource("fleet-vehicles", emptyCollection(), { cluster: true, clusterRadius: 48, clusterMaxZoom: 15 });
+    addLayer("geofences-fill", { type: "fill", source: "geofences", paint: { "fill-color": ["get", "color"], "fill-opacity": 0.18 } });
+    addLayer("geofences-line", { type: "line", source: "geofences", paint: { "line-color": ["get", "color"], "line-width": 2.5, "line-opacity": 0.95 } });
+    addLayer("geofence-draft-fill", { type: "fill", source: "geofence-draft", paint: { "fill-color": "#38bdf8", "fill-opacity": 0.16 } });
+    addLayer("geofence-draft-line", { type: "line", source: "geofence-draft", paint: { "line-color": "#38bdf8", "line-width": 2, "line-dasharray": [2, 2] } });
+    addLayer("fleet-clusters", {
+      type: "circle",
+      source: "fleet-vehicles",
+      filter: ["has", "point_count"],
+      paint: { "circle-color": "#2563eb", "circle-radius": ["step", ["get", "point_count"], 18, 8, 26, 20, 34], "circle-stroke-color": "#fff", "circle-stroke-width": 2 }
+    });
+    addLayer("fleet-cluster-count", {
+      type: "symbol",
+      source: "fleet-vehicles",
+      filter: ["has", "point_count"],
+      layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 12 },
+      paint: { "text-color": "#fff" }
+    });
+    addLayer("fleet-points", {
+      type: "circle",
+      source: "fleet-vehicles",
+      filter: ["!", ["has", "point_count"]],
+      paint: { "circle-color": ["get", "color"], "circle-radius": ["case", ["get", "critical"], 13, 11], "circle-stroke-color": "#fff", "circle-stroke-width": 2 }
+    });
+    addLayer("fleet-labels", {
+      type: "symbol",
+      source: "fleet-vehicles",
+      filter: ["!", ["has", "point_count"]],
+      layout: { "text-field": ["get", "plate"], "text-size": 11, "text-offset": [0, 1.45], "text-allow-overlap": false },
+      paint: { "text-color": "#f8fafc", "text-halo-color": "#020617", "text-halo-width": 1.5 }
+    });
+  }
+
+  function addGeoJsonSource(id, data, extra = {}) {
+    if (!map.getSource(id)) map.addSource(id, { type: "geojson", data, ...extra });
+  }
+
+  function addLayer(id, config) {
+    if (!map.getLayer(id)) map.addLayer({ id, ...config });
+  }
+
+  function emptyCollection() {
+    return { type: "FeatureCollection", features: [] };
+  }
+
+  function setSource(id, data) {
+    const source = map?.getSource(id);
+    if (source) source.setData(data);
+  }
+
+  function bindMapEvents() {
+    if (map.__fleetCommandBound) return;
+    map.__fleetCommandBound = true;
+    map.on("click", event => {
+      if (!drawing) return;
+      draftCoords.push([event.lngLat.lng, event.lngLat.lat]);
+      renderDraft();
+    });
+    map.on("dblclick", event => {
+      if (!drawing) return;
+      event.preventDefault();
+      saveDraftGeofence();
+    });
+    map.on("click", "fleet-points", event => {
+      const feature = event.features?.[0];
+      if (!feature) return;
+      const vehicle = lastVehicles.find(item => String(item.id || item.plate) === String(feature.properties.id));
+      showVehicleDetail(vehicle || feature.properties);
+    });
+    map.on("click", "geofences-fill", event => {
+      const feature = event.features?.[0];
+      if (feature) selectGeofence(feature.properties.id);
+    });
+    ["fleet-points", "geofences-fill", "fleet-clusters"].forEach(layer => {
+      map.on("mouseenter", layer, () => map.getCanvas().style.cursor = "pointer");
+      map.on("mouseleave", layer, () => map.getCanvas().style.cursor = drawing ? "crosshair" : "");
+    });
+  }
+
+  function addGeofencePanel() {
+    if ($("geofenceEditorPanel")) return;
+    const panel = document.createElement("section");
+    panel.id = "geofenceEditorPanel";
+    panel.className = "map-editor-panel";
+    panel.innerHTML = `
+      <strong>Geocercas operativas</strong>
+      <small id="geofenceEditorHint">Dibuja un poligono sobre el mapa. Doble clic o Guardar para finalizar.</small>
+      <input id="geofenceNameInput" type="text" placeholder="Nombre de zona, base o ruta">
+      <div class="map-editor-actions">
+        <button id="drawGeofenceBtn" class="primary" type="button">Dibujar</button>
+        <button id="saveGeofenceBtn" type="button" disabled>Guardar</button>
+        <button id="cancelGeofenceBtn" type="button">Cancelar</button>
+        <button id="editGeofenceBtn" type="button" disabled>Editar</button>
+        <button id="deleteGeofenceBtn" class="danger" type="button" disabled>Eliminar</button>
+        <button id="fitFleetBtn" type="button">Centrar</button>
+      </div>
+    `;
+    $("map")?.parentElement?.appendChild(panel);
+    $("drawGeofenceBtn").addEventListener("click", startGeofenceDrawing);
+    $("saveGeofenceBtn").addEventListener("click", saveDraftGeofence);
+    $("cancelGeofenceBtn").addEventListener("click", cancelGeofenceEditing);
+    $("editGeofenceBtn").addEventListener("click", editSelectedGeofence);
+    $("deleteGeofenceBtn").addEventListener("click", deleteSelectedGeofence);
+    $("fitFleetBtn").addEventListener("click", fitFleet);
+  }
+
+  function startGeofenceDrawing() {
+    drawing = true;
+    selectedGeofenceId = null;
+    draftCoords = [];
+    clearEditMarkers();
+    map.getCanvas().style.cursor = "crosshair";
+    $("saveGeofenceBtn").disabled = false;
+    $("editGeofenceBtn").disabled = true;
+    $("deleteGeofenceBtn").disabled = true;
+    setText("geofenceEditorHint", "Haz clic para agregar vertices. Doble clic o Guardar finaliza la geocerca.");
+    renderDraft();
+  }
+
+  function renderDraft() {
+    if (!mapReady) return;
+    const coords = draftCoords.length > 2 ? [[...draftCoords, draftCoords[0]]] : [draftCoords];
+    setSource("geofence-draft", {
+      type: "FeatureCollection",
+      features: draftCoords.length > 1 ? [{
+        type: "Feature",
+        geometry: { type: draftCoords.length > 2 ? "Polygon" : "LineString", coordinates: draftCoords.length > 2 ? coords : draftCoords },
+        properties: {}
+      }] : []
+    });
+  }
+
+  async function saveDraftGeofence() {
+    if (draftCoords.length < 3) {
+      showNotification("Geocerca incompleta", "Agrega minimo tres puntos sobre el mapa.", "info");
+      return;
+    }
+    const name = $("geofenceNameInput")?.value.trim() || `Zona ${lastGeofences.length + 1}`;
+    const geometry = { type: "Polygon", coordinates: [[...draftCoords, draftCoords[0]]] };
+    const rules = { alertOnEnter: true, alertOnExit: true, notifyRoles: ["admin", "supervisor"] };
+    try {
+      let response;
+      if (selectedGeofenceId) {
+        response = await apiFetch(`/api/geofences/${encodeURIComponent(selectedGeofenceId)}`, {
+          method: "PUT",
+          body: JSON.stringify({ name, geometry, rules })
+        });
+      } else {
+        response = await apiFetch("/api/geofences", {
+          method: "POST",
+          body: JSON.stringify({ name, type: "polygon", geometry, rules })
+        });
+      }
+      if (!response.ok) throw new Error("No se pudo guardar");
+      await loadGeofences();
+      cancelGeofenceEditing();
+      showNotification("Geocerca guardada", "La zona quedo disponible para alertas de entrada y salida.", "success");
+    } catch (error) {
+      showNotification("No se guardo", "Revisa permisos de administrador o conexion API.", "danger");
+    }
+  }
+
+  function selectGeofence(id) {
+    selectedGeofenceId = id;
+    const geofence = lastGeofences.find(item => String(item.id) === String(id));
+    if (!geofence) return;
+    $("geofenceNameInput").value = geofence.name || "";
+    $("editGeofenceBtn").disabled = false;
+    $("deleteGeofenceBtn").disabled = false;
+    setText("geofenceEditorHint", `${geofence.name}: editar vertices, mover o eliminar.`);
+    if (fleetPopup) fleetPopup.remove();
+    const center = featureCenter(geofenceToFeature(geofence));
+    fleetPopup = new maplibregl.Popup({ maxWidth: "260px" })
+      .setLngLat(center)
+      .setHTML(`<div class="geofence-popup"><strong>${escapeHtml(geofence.name)}</strong><span>Alertas entrada/salida activas</span><button onclick="editSelectedGeofence()">Editar vertices</button><button class="danger" onclick="deleteSelectedGeofence()">Eliminar</button></div>`)
+      .addTo(map);
+  }
+
+  function editSelectedGeofence() {
+    const geofence = lastGeofences.find(item => String(item.id) === String(selectedGeofenceId));
+    if (!geofence) return;
+    draftCoords = polygonCoords(geofence.geometry);
+    drawing = false;
+    $("saveGeofenceBtn").disabled = false;
+    setText("geofenceEditorHint", "Arrastra vertices y guarda los cambios.");
+    renderDraft();
+    renderEditMarkers();
+  }
+
+  function renderEditMarkers() {
+    clearEditMarkers();
+    draftCoords.forEach((coord, index) => {
+      const el = document.createElement("div");
+      el.className = "vertex-marker";
+      const marker = new maplibregl.Marker({ element: el, draggable: true })
+        .setLngLat(coord)
+        .addTo(map);
+      marker.on("drag", () => {
+        const lngLat = marker.getLngLat();
+        draftCoords[index] = [lngLat.lng, lngLat.lat];
+        renderDraft();
+      });
+      editMarkers.push(marker);
+    });
+  }
+
+  function clearEditMarkers() {
+    editMarkers.forEach(marker => marker.remove());
+    editMarkers = [];
+  }
+
+  async function deleteSelectedGeofence() {
+    if (!selectedGeofenceId) return;
+    if (!confirm("Eliminar esta geocerca?")) return;
+    try {
+      const response = await apiFetch(`/api/geofences/${encodeURIComponent(selectedGeofenceId)}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("No se pudo eliminar");
+      await loadGeofences();
+      cancelGeofenceEditing();
+      showNotification("Geocerca eliminada", "La zona ya no generara alertas.", "success");
+    } catch (error) {
+      showNotification("No se elimino", "Revisa permisos o conexion API.", "danger");
+    }
+  }
+
+  function cancelGeofenceEditing() {
+    drawing = false;
+    draftCoords = [];
+    selectedGeofenceId = null;
+    clearEditMarkers();
+    renderDraft();
+    if (map) map.getCanvas().style.cursor = "";
+    if ($("saveGeofenceBtn")) $("saveGeofenceBtn").disabled = true;
+    if ($("editGeofenceBtn")) $("editGeofenceBtn").disabled = true;
+    if ($("deleteGeofenceBtn")) $("deleteGeofenceBtn").disabled = true;
+    if (fleetPopup) fleetPopup.remove();
+    setText("geofenceEditorHint", "Dibuja un poligono sobre el mapa. Doble clic o Guardar para finalizar.");
+  }
+
+  async function loadGeofences() {
+    try {
+      const response = await apiFetch("/api/geofences");
+      lastGeofences = response.ok ? await response.json() : [];
+      renderGeofences(lastGeofences);
+    } catch (error) {
+      lastGeofences = [];
+      renderGeofences([]);
+    }
+  }
+
+  function renderGeofences(geofences) {
+    lastGeofences = Array.isArray(geofences) ? geofences : [];
+    if (!mapReady || !map.isStyleLoaded()) return;
+    ensureMapLayers();
+    setSource("geofences", {
+      type: "FeatureCollection",
+      features: lastGeofences.map(geofenceToFeature).filter(Boolean)
+    });
+  }
+
+  function geofenceToFeature(geofence) {
+    const geometry = geofence.geometry || {};
+    let featureGeometry = geometry;
+    if (geometry.type === "Circle") featureGeometry = circleToPolygon(geometry.coordinates, Number(geometry.radius || 150));
+    if (!featureGeometry?.type) return null;
+    return {
+      type: "Feature",
+      id: geofence.id,
+      geometry: featureGeometry,
+      properties: {
+        id: geofence.id,
+        name: geofence.name || "Geocerca",
+        color: geofence.rules?.color || "#38bdf8"
+      }
+    };
+  }
+
+  function polygonCoords(geometry) {
+    if (geometry?.type === "Polygon") return (geometry.coordinates?.[0] || []).slice(0, -1);
+    if (geometry?.type === "Circle") return circleToPolygon(geometry.coordinates, Number(geometry.radius || 150)).coordinates[0].slice(0, -1);
+    return [];
+  }
+
+  function circleToPolygon(center, radiusMeters) {
+    const [lng, lat] = center || MAP_CENTER;
+    const points = [];
+    const earth = 6378137;
+    for (let i = 0; i <= 48; i += 1) {
+      const bearing = (i / 48) * Math.PI * 2;
+      const dx = radiusMeters * Math.cos(bearing);
+      const dy = radiusMeters * Math.sin(bearing);
+      points.push([lng + (dx / (earth * Math.cos(lat * Math.PI / 180))) * 180 / Math.PI, lat + (dy / earth) * 180 / Math.PI]);
+    }
+    return { type: "Polygon", coordinates: [points] };
+  }
+
+  function featureCenter(feature) {
+    const coords = feature?.geometry?.type === "Polygon" ? feature.geometry.coordinates[0] : feature?.geometry?.coordinates || [MAP_CENTER];
+    const flat = Array.isArray(coords[0]) ? coords : [coords];
+    const sum = flat.reduce((acc, point) => [acc[0] + Number(point[0]), acc[1] + Number(point[1])], [0, 0]);
+    return [sum[0] / flat.length, sum[1] / flat.length];
+  }
+
+  async function loadFleet() {
+    try {
+      const response = await apiFetch("/api/fleet/live");
+      if (!response.ok) throw new Error("fleet");
+      const live = await response.json();
+      telemetryConfig = live.telemetryConfig || telemetryConfig;
+      applyConfiguredMapLayer();
+      lastVehicles = mergeFleet(live.vehicles || [], live.devices || [], live.positions || []);
+      renderVehicles(lastVehicles);
+      renderFleet(lastVehicles);
+      renderCounters(lastVehicles);
+      renderCharts(lastVehicles);
+      await Promise.allSettled([loadGeofences(), renderAlertPanel(), renderDriverAudit()]);
+    } catch (error) {
+      showNotification("Telemetria", "No se pudo cargar flota en vivo.", "danger");
+    }
+  }
+
+  function mergeFleet(vehicles, devices, positions) {
+    const byDevice = new Map(vehicles.filter(v => v.traccarDeviceId).map(v => [v.traccarDeviceId, v]));
+    const byPlate = new Map(vehicles.filter(v => v.plate).map(v => [String(v.plate).toUpperCase(), v]));
+    const used = new Set();
+    const live = positions.map(position => {
+      const device = devices.find(item => item.id === position.deviceId) || {};
+      const plate = String(device.name || device.uniqueId || position.placa || "").toUpperCase();
+      const local = byDevice.get(position.deviceId) || byPlate.get(plate) || {};
+      if (local.id) used.add(local.id);
+      return { ...local, id: local.id || `gps-${position.deviceId}`, plate: local.plate || plate || "SIN PLACA", name: local.name || device.name || "Vehiculo", type: local.type || "GPS", driver: local.driver || "Sin conductor", latitude: position.latitude, longitude: position.longitude, speed: Math.round(position.speed || 0), status: local.status || "Sin inspeccion", risk: local.risk };
+    });
+    return live.concat(vehicles.filter(v => !used.has(v.id)).map(v => ({ ...v, speed: 0 })));
+  }
+
+  function renderFleet(vehicles) {
+    if (!mapReady || !map.isStyleLoaded()) return;
+    ensureMapLayers();
+    const features = vehicles.map(vehicle => {
+      if (!Number.isFinite(Number(vehicle.longitude)) || !Number.isFinite(Number(vehicle.latitude))) return null;
+      const score = Number(vehicle.risk?.percentage || vehicle.risk?.score || (vehicle.status === "Crítica" ? 82 : vehicle.status === "Con novedad" ? 45 : 18));
+      return {
+        type: "Feature",
+        id: vehicle.id || vehicle.plate,
+        geometry: { type: "Point", coordinates: [Number(vehicle.longitude), Number(vehicle.latitude)] },
+        properties: { id: vehicle.id || vehicle.plate, plate: vehicle.plate || "GPS", color: riskColor(score), critical: score >= 75, speed: vehicle.speed || 0 }
+      };
+    }).filter(Boolean);
+    setSource("fleet-vehicles", { type: "FeatureCollection", features });
+    fitFleet(false);
+  }
+
+  function renderVehicles(vehicles) {
+    const container = $("vehicles");
+    if (!container) return;
+    const query = ($("searchVehicle")?.value || "").toLowerCase();
+    const onlyRisk = $("filterRisk")?.checked;
+    const filtered = vehicles.filter(vehicle => {
+      const text = `${vehicle.plate || ""} ${vehicle.driver || ""} ${vehicle.name || ""}`.toLowerCase();
+      const score = Number(vehicle.risk?.percentage || vehicle.risk?.score || 0);
+      return text.includes(query) && (!onlyRisk || score >= 55 || vehicle.status === "Crítica");
+    });
+    container.innerHTML = filtered.map(vehicle => {
+      const score = Number(vehicle.risk?.percentage || vehicle.risk?.score || (vehicle.status === "Crítica" ? 82 : vehicle.status === "Con novedad" ? 45 : 18));
+      return `
+        <article class="vehicle-card" onclick="focusVehicle('${escapeHtml(vehicle.id || vehicle.plate)}')">
+          <div><strong>${escapeHtml(vehicle.plate || "SIN PLACA")}</strong><span>${escapeHtml(vehicle.type || "Vehiculo")}</span></div>
+          <p>${escapeHtml(vehicle.driver || "Sin conductor")}</p>
+          <div class="vehicle-meta"><span style="--status-color:${riskColor(score)}">${escapeHtml(vehicle.status || riskLevel(score))}</span><span>${Number(vehicle.speed || 0)} km/h</span></div>
+          <small>Riesgo dinamico ${score}%</small>
+        </article>
+      `;
+    }).join("") || `<p class="empty-state">Sin vehiculos para mostrar.</p>`;
+  }
+
+  function renderCounters(vehicles) {
+    setText("fleetCount", vehicles.length);
+    setText("operativas", vehicles.filter(v => v.status === "Operativa").length);
+    setText("novedad", vehicles.filter(v => ["Con novedad", "En revisión", "En revision"].includes(v.status)).length);
+    setText("criticas", vehicles.filter(v => v.status === "Crítica").length);
+    setText("briefOnline", vehicles.filter(v => v.latitude && v.longitude).length);
+    setText("briefRisk", vehicles.filter(v => Number(v.risk?.percentage || v.risk?.score || 0) >= 55 || v.status === "Crítica").length);
+    setText("briefAlerts", vehicles.filter(v => v.status && v.status !== "Operativa").length);
+  }
+
+  function renderCharts(vehicles) {
+    const canvas = $("statusChart");
+    if (!canvas || !window.Chart) return;
+    const counts = {
+      Operativa: vehicles.filter(v => v.status === "Operativa").length,
+      Novedad: vehicles.filter(v => ["Con novedad", "En revisión", "En revision"].includes(v.status)).length,
+      Critica: vehicles.filter(v => v.status === "Crítica").length,
+      "Sin inspeccion": vehicles.filter(v => !v.status || v.status === "Sin inspeccion").length
+    };
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(canvas, {
+      type: "doughnut",
+      data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ["#22c55e", "#f59e0b", "#ef4444", "#64748b"], borderColor: "#0f172a", borderWidth: 2 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { color: "#cbd5e1" } } } }
+    });
+  }
+
+  async function renderAlertPanel() {
+    const alertContainer = $("alertPanel");
+    const incidentContainer = $("incidentPanel");
+    if (!alertContainer && !incidentContainer) return;
+    try {
+      const response = await apiFetch("/api/alerts");
+      const alerts = response.ok ? await response.json() : [];
+      if (alertContainer) {
+        const vehicleAlerts = alerts.filter(alert => alert.placa !== "GLOBAL").slice(0, 6);
+        alertContainer.innerHTML = `<h3>Alertas operacionales</h3>${vehicleAlerts.map(alert => `<div class="alert-item priority-${String(alert.prioridad || "media").toLowerCase()}"><strong>${escapeHtml(alert.placa)}</strong>: ${escapeHtml(alert.mensaje)}</div>`).join("") || "<p>Operacion estable.</p>"}`;
+      }
+      if (incidentContainer) {
+        const incidents = alerts.filter(alert => alert.placa === "GLOBAL").slice(0, 5);
+        incidentContainer.innerHTML = `<h3>Incidentes en Via</h3>${incidents.map(alert => `<div class="incident-item"><strong>${escapeHtml(alert.tipo)}</strong>: ${escapeHtml(alert.mensaje)}</div>`).join("") || "<p>Sin reportes externos.</p>"}`;
+      }
+    } catch (error) {
+      if (alertContainer) alertContainer.innerHTML = "<p>No se pudieron cargar alertas.</p>";
+    }
+  }
+
+  async function renderDriverAudit() {
+    const container = $("driverRanking");
+    if (!container) return;
+    try {
+      const response = await apiFetch("/api/reports/audit/drivers");
+      const drivers = response.ok ? await response.json() : [];
+      container.innerHTML = `<h3>Ranking conductores</h3>${drivers.slice(0, 5).map(driver => `<div class="incident-item"><strong>${escapeHtml(driver.name)}</strong><br>Cumplimiento: ${Number(driver.score || 0)}% | GPS: ${escapeHtml(driver.gpsStatus || "N/D")}</div>`).join("") || "<p>Sin auditoria registrada.</p>"}`;
+    } catch (error) {
+      container.innerHTML = "<p>No se pudo cargar ranking.</p>";
+    }
+  }
+
+  function focusVehicle(id) {
+    const vehicle = lastVehicles.find(item => String(item.id || item.plate) === String(id));
+    if (!vehicle) return;
+    if (map && vehicle.latitude && vehicle.longitude) map.easeTo({ center: [Number(vehicle.longitude), Number(vehicle.latitude)], zoom: 16, pitch: 48, duration: 700 });
+    showVehicleDetail(vehicle);
+  }
+
+  async function showVehicleDetail(vehicle) {
+    const panel = $("vehicleDetail");
+    const content = $("vehicleDetailContent");
+    if (!panel || !content) return;
+    panel.classList.add("open");
+    const plate = vehicle.plate || "SIN PLACA";
+    content.innerHTML = `<p class="eyebrow">Vehiculo seleccionado</p><h2>${escapeHtml(plate)}</h2><p>Calculando riesgo...</p>`;
+    try {
+      const response = await apiFetch(`/api/reports/vehicle/${encodeURIComponent(plate)}`);
+      const report = response.ok ? await response.json() : null;
+      const risk = report?.risk || vehicle.risk || { percentage: 0, level: "Bajo", color: "#22c55e", advice: "Operacion normal." };
+      const percent = Number(risk.percentage || risk.score || 0);
+      content.innerHTML = `
+        <p class="eyebrow">Vehiculo seleccionado</p>
+        <h2>${escapeHtml(plate)}</h2>
+        <p>${escapeHtml(vehicle.name || report?.vehicle?.name || "Activo GPS")} - ${escapeHtml(vehicle.type || report?.vehicle?.type || "Vehiculo")}</p>
+        <div class="detail-metrics">
+          <div><strong>${Number(vehicle.speed || 0)}</strong><span>km/h</span></div>
+          <div><strong>${escapeHtml(vehicle.status || report?.vehicle?.status || "N/D")}</strong><span>Estado</span></div>
+          <div><strong>${percent}%</strong><span>${escapeHtml(risk.level || riskLevel(percent))}</span></div>
+          <div><strong>${Number(report?.summary?.alerts || 0)}</strong><span>Alertas</span></div>
         </div>
-        ${data.fleet.map(v => `
-            <div class="admin-record">
-                <strong>${v.plate}</strong>
-                <span>${v.distanceKm} km hoy</span>
-                <span class="${v.nextMaintenance < 500 ? 'text-orange-500 font-bold' : ''}">${v.nextMaintenance} km</span>
-                <span class="status-pill ${v.riskScore > 60 ? 'danger' : 'success'}">${v.riskScore}%</span>
-            </div>
-        `).join('')}
-    `;
-
-    // Selector de vehículos en reporte
-    const sel = document.getElementById("repVehicle");
-    if (sel) {
-        sel.innerHTML = '<option value="all">Toda la flota</option>' +
-            data.fleet.map(v => `<option value="${v.plate}">${v.plate}</option>`).join('');
+        <div class="risk-gauge"><div class="risk-ring" style="--risk:${percent};--risk-color:${risk.color || riskColor(percent)}"><span>${percent}%</span></div><div><strong>Riesgo dinamico</strong><p>${escapeHtml(risk.advice || "Monitoreo preventivo activo.")}</p></div></div>
+        <a class="secondary-link" target="_blank" href="/api/reports/vehicle/${encodeURIComponent(plate)}/pdf?token=${encodeURIComponent(getToken())}">Generar PDF</a>
+      `;
+    } catch (error) {
+      content.innerHTML += `<p class="empty-state">No se pudo cargar detalle completo.</p>`;
     }
-}
+  }
 
-function triggerPDFReport(e) {
-    e.preventDefault();
-    const type = document.getElementById("repType").value;
-    const plate = document.getElementById("repVehicle").value;
-    const from = document.getElementById("repFrom").value;
-    const to = document.getElementById("repTo").value;
+  function closeVehicleDetail() {
+    $("vehicleDetail")?.classList.remove("open");
+  }
 
-    const url = `/api/reports/vehicle/${plate}/pdf?token=${getToken()}&type=${type}&from=${from}&to=${to}`;
-    window.open(url, '_blank');
-    showNotification("Generando Informe", "Tu reporte corporativo se está procesando.", "success");
-}
-}
-const MAP_CENTER = [-74.0817, 4.6097]; const MAP_STYLE_URLS = {   standard: "https://tiles.openfreemap.org/styles/positron",   osm: "https://tiles.openfreemap.org/styles/liberty",   openfreemap: "https://tiles.openfreemap.org/styles/dark",   maptiler: "https://tiles.openfreemap.org/styles/dark",   dark: "https://tiles.openfreemap.org/styles/dark",   traffic: "https://tiles.openfreemap.org/styles/bright",   terrain: "https://tiles.openfreemap.org/styles/fiord",   satellite: {     version: 8,     sources: {       esri: {         type: "raster",         tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],         tileSize: 256,         attribution: "Tiles &copy; Esri"       }     },     layers: [{ id: "esri-satellite", type: "raster", source: "esri" }]   } }; const map = new maplibregl.Map({   container: "map",   style: MAP_STYLE_URLS.dark,   center: MAP_CENTER,   zoom: 11,   pitch: 36,   bearing: -8,   attributionControl: false,   antialias: true,   maxZoom: 20 }); const markers = {}; let userRole = "guest"; // Rol del usuario logueado let mapReady = false; let pendingVehicles = []; let pendingGeofences = []; let lastVehicleFeatureMap = new Map(); let fleetAnimationFrame = null; let fleetPopup = null; let activeConfiguredLayer = "dark"; map.on("load", () => {   mapReady = true;   if (!map.__controlsAdded) {     map.__controlsAdded = true;     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottomright");     map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottomleft");     map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottomright");   }   ensureFleetMapLayers();   renderMarkers(pendingVehicles);   renderGeofences(pendingGeofences); }); map.on("style.load", () => {   ensureFleetMapLayers();   renderMarkers(pendingVehicles);   renderGeofences(pendingGeofences); }); // Inyección de estilos para la alerta visual de riesgo crítico const style = document.createElement('style'); style.innerHTML = `   @keyframes pulse-critical {     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); opacity: 1; }     70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); opacity: 0.8; }     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); opacity: 1; }   }   .marker-critical span {     animation: pulse-critical 1.5s infinite;     border: 2px solid white;   }   .photo-gallery {     display: grid;     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));     gap: 8px;     margin-top: 10px;   }   .photo-item {     width: 100%;     height: 80px;     object-fit: cover;     border-radius: 4px;     cursor: pointer;     border: 1px solid #e2e8f0;     transition: transform 0.2s;   }   .photo-item:hover {     transform: scale(1.05);   }   .photo-modal {     display: none;     position: fixed;     z-index: 3000;     left: 0;     top: 0;     width: 100%;     height: 100%;     background-color: rgba(0,0,0,0.9);     align-items: center;     justify-content: center;   }   .photo-modal.active {     display: flex;   }   .photo-container {     width: 100%;     height: 100%;     display: flex;     align-items: center;     justify-content: center;     overflow: hidden;   }   .photo-modal-content {     max-width: 90%;     max-height: 90%;     border-radius: 4px;     transition: transform 0.2s ease-out;   }   .photo-modal-close {     position: absolute;     top: 20px;     right: 30px;     color: white;     font-size: 40px;     font-weight: bold;     cursor: pointer;   }   .photo-modal-nav {     position: absolute;     top: 50%;     transform: translateY(-50%);     background: rgba(255,255,255,0.1);     color: white;     border: none;     padding: 20px 15px;     cursor: pointer;     font-size: 30px;     transition: background 0.3s;     border-radius: 4px;     display: none;   }   .photo-modal-nav:hover { background: rgba(255,255,255,0.3); }   .photo-modal-nav.prev { left: 20px; }   .photo-modal-nav.next { right: 20px; }   .photo-modal-controls {     position: absolute;     bottom: 30px;     left: 50%;     transform: translateX(-50%);     display: flex;     gap: 15px;     z-index: 3001;   }   .control-btn {     background: rgba(255, 255, 255, 0.2);     color: white;     border: 1px solid rgba(255, 255, 255, 0.3);     padding: 8px 15px;     border-radius: 4px;     cursor: pointer;     font-size: 20px;     backdrop-filter: blur(4px);     transition: all 0.3s;     display: flex;     align-items: center;     justify-content: center;   }   .control-btn:hover { background: rgba(255, 255, 255, 0.4); }   /* Dashboard Moderno - Estilos de Centro de Control */   .alert-panel {     background: #fff;     border-radius: 8px;     padding: 15px;     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);     margin-top: 20px;     border-top: 4px solid #3b82f6;   }   .incident-panel {     background: #1e293b;     color: #f8fafc;     border-radius: 8px;     padding: 15px;     margin-top: 20px;     max-height: 300px;     overflow-y: auto;     border-left: 4px solid #ef4444;   }   .incident-item {     padding: 8px;     border-bottom: 1px solid #334155;     font-size: 0.85rem;   }   .alert-item {     border-left: 4px solid #cbd5e1;     padding: 10px;     margin-bottom: 10px;     background: #f8fafc;     font-size: 0.9rem;   }   .alert-item.priority-alta { border-left-color: #dc2626; background: #fef2f2; }   .alert-item.priority-media { border-left-color: #d97706; background: #fffbeb; }   .chart-container {     height: 220px;     margin: 20px 0;   }   .risk-progress-container {     width: 100%;     background-color: #e2e8f0;     border-radius: 9999px;     height: 12px;     margin: 15px 0;     overflow: hidden;   }   .risk-progress-bar {     height: 100%;     border-radius: 9999px;     transition: width 0.5s ease-out;   }   /* Estilos para el Logo y Branding */   .branding-container {     display: flex;     align-items: center;     gap: 12px;     margin-bottom: 15px;   }   #companyLogoImg {     max-height: 40px;     max-width: 120px;     object-fit: contain;   }   /* Pantalla de Login */   #loginOverlay {     position: fixed;     top: 0; left: 0; width: 100%; height: 100%;     background: #1e293b;     z-index: 10000;     display: flex;     align-items: center;     justify-content: center;     color: white;   } `; document.head.appendChild(style); // Utilidades de API const getToken = () => { try { return localStorage.getItem("token") || window.__demoToken || ""; } catch (error) { return window.__demoToken || ""; } }; async function apiFetch(url, options = {}) {   const token = getToken();   const headers = {     "Content-Type": "application/json",     ...options.headers,     "Authorization": token ? `Bearer ${token}` : ""   };   const response = await fetch(url, { ...options, headers });   if (response.status === 401) {     localStorage.clear();     const overlay = document.getElementById("loginOverlay");     if (overlay) overlay.style.display = "flex";   }   return response; } async function handleLogin(event) {   event.preventDefault();   const form = event.target;   const button = form.querySelector("button[type=submit]");   const originalText = button ? button.textContent : "";   if (button) {     button.disabled = true;     button.textContent = "Validando...";   }   try {     const response = await fetch("/api/auth/login", {       method: "POST",       headers: { "Content-Type": "application/json" },       body: JSON.stringify({         email: form.email.value,         password: form.password.value       })     });     const result = await response.json();     if (!response.ok) {       showNotification("Acceso no autorizado", result.message || "Revisa usuario y clave.", "danger");       return;     }     localStorage.setItem("token", result.token);     localStorage.setItem("user", JSON.stringify(result.user));     localStorage.setItem("company", JSON.stringify(result.company));     bootAuthenticatedView();   } catch (error) {     showNotification("Error de conexión", "No se pudo contactar el backend local.", "danger");   } finally {     if (button) {       button.disabled = false;       button.textContent = originalText;     }   } } function logout() {   localStorage.clear();   window.location.href = "/login.html"; } function updateBranding() {   window.location.href = "/ajustes.html"; } // Sistema de Notificaciones Toast para el Centro de Control function showNotification(title, message, type = "info") {   const container = document.getElementById("notificationContainer") || createNotificationContainer();   const toast = document.createElement("div");   toast.className = `toast toast-${type}`;   toast.innerHTML = `     <strong>${title}</strong>     <p>${message}</p>   `;   container.appendChild(toast);   setTimeout(() => {     toast.style.opacity = "0";     setTimeout(() => toast.remove(), 500);   }, 5000); } function createNotificationContainer() {   const div = document.createElement("div");   div.id = "notificationContainer";   document.body.appendChild(div);   return div; } // Variables de estado para el carrusel de fotos let currentPhotoList = []; let currentPhotoIndex = 0; let currentScale = 1; let currentRotation = 0; // Visor de fotos (Modal) function openPhotoModal(photos, index) {   currentPhotoList = photos;   currentPhotoIndex = index;   const modal = document.getElementById("photoModal") || createPhotoModal();   modal.classList.add("active");   updateModalImage(); } function updateModalImage() {   const modalImg = document.getElementById("modalImg");   if (modalImg && currentPhotoList.length > 0) {     modalImg.src = currentPhotoList[currentPhotoIndex];     resetTransform();   }     // Mostrar/ocultar botones de navegación según la cantidad de fotos   const navBtns = document.querySelectorAll(".photo-modal-nav");   navBtns.forEach(btn => {     btn.style.display = currentPhotoList.length > 1 ? "block" : "none";   }); } function nextPhoto() {   if (currentPhotoList.length === 0) return;   currentPhotoIndex = (currentPhotoIndex + 1) % currentPhotoList.length;   updateModalImage(); } function prevPhoto() {   if (currentPhotoList.length === 0) return;   currentPhotoIndex = (currentPhotoIndex - 1 + currentPhotoList.length) % currentPhotoList.length;   updateModalImage(); } /** * Abre el modal extrayendo todas las fotos de un contenedor de galería. */ function openPhotoModalFromGallery(galleryId, index) {   const container = document.getElementById(galleryId);   if (!container) return;   const photos = Array.from(container.querySelectorAll('.photo-item')).map(img => img.src);   openPhotoModal(photos, index); } function closePhotoModal() {   const modal = document.getElementById("photoModal");   if (modal) {     modal.classList.remove("active");     resetTransform();   } } function createPhotoModal() {   const div = document.createElement("div");   div.id = "photoModal";   div.className = "photo-modal";   div.innerHTML = `     <span class="photo-modal-close" onclick="closePhotoModal()">&times;</span>     <button class="photo-modal-nav prev" onclick="prevPhoto()">&#10094;</button>     <div class="photo-container">       <img id="modalImg" class="photo-modal-content">     </div>     <button class="photo-modal-nav next" onclick="nextPhoto()">&#10095;</button>     <div class="photo-modal-controls">       <button class="control-btn" onclick="zoomOut()" title="Alejar">-</button>       <button class="control-btn" onclick="resetTransform()" title="Restablecer">Reset</button>       <button class="control-btn" onclick="zoomIn()" title="Acercar">+</button>       <button class="control-btn" onclick="rotateImage()" title="Rotar">Rotar</button>     </div>   `;   div.onclick = (e) => {     if (e.target.id === 'photoModal' || e.target.className === 'photo-container') closePhotoModal();   };   document.body.appendChild(div);   return div; } function zoomIn() {   currentScale += 0.2;   applyTransform(); } function zoomOut() {   if (currentScale > 0.4) {     currentScale -= 0.2;     applyTransform();   } } function rotateImage() {   currentRotation += 90;   applyTransform(); } function resetTransform() {   currentScale = 1;   currentRotation = 0;   applyTransform(); } function applyTransform() {   const img = document.getElementById("modalImg");   if (img) {     img.style.transform = `scale(${currentScale}) rotate(${currentRotation}deg)`;   } } let lastVehicles = []; let vehicleProfiles = {}; let statusChart = null; const geofenceLayers = {}; // Para almacenar las capas de geocercas en el mapa let telemetryConfig = null; let telemetryStream = null; let telemetrySocket = null; let lastFleetRefresh = 0; async function loadProfiles() {   const res = await fetch("/api/vehicle-profiles");   vehicleProfiles = await res.json(); } const statusColors = {   Operativa: "#22C55E",   "Con novedad": "#f59e0b",   Crítica: "#ef4444",   "Sin inspección": "#94A3B8",   "En revisión": "#f59e0b" }; document.getElementById("searchVehicle").addEventListener("input", () => {   renderVehicles(lastVehicles); }); document.getElementById("filterRisk")?.addEventListener("change", () => {   renderVehicles(lastVehicles); }); // Mapeo de iconos para el clima (usando emojis para simplicidad en beta) const WEATHER_ICONS = {   "Clear": "Sol",   "Clouds": "Nublado",   "Rain": "Lluvia",   "Drizzle": "Llovizna",   "Thunderstorm": "Tormenta",   "Snow": "Nieve",   "Mist": "Neblina",   "Smoke": "Humo",   "Haze": "Bruma",   "Fog": "Niebla",   "default": "Clima" }; async function updateSafetyPhrase() {   try {     const res = await fetch("/api/safety-phrase");     const data = await res.json();     const container = document.getElementById("safetyPhraseContainer");     if (container) container.textContent = data.phrase;   } catch (error) {     const container = document.getElementById("safetyPhraseContainer");     if (container) container.textContent = "Conduce seguro. Tu seguridad es primero.";   } } function emptyFeatureCollection() {   return { type: "FeatureCollection", features: [] }; } function resolveMapStyle(maps = {}) {   const provider = maps.provider || "openfreemap";   const style = maps.style || (maps.darkMode ? "dark" : "standard");   if (provider === "custom" && maps.customStyleUrl) return maps.customStyleUrl;   if (style === "traffic" && maps.trafficStyleUrl) return maps.trafficStyleUrl;   if (provider === "maptiler" && maps.maptilerKey) {     const maptilerStyle = style === "satellite" ? "hybrid" : style === "dark" ? "streets-v2-dark" : style === "terrain" ? "outdoor-v2" : "streets-v2";     return `https://api.maptiler.com/maps/${maptilerStyle}/style.json?key=${encodeURIComponent(maps.maptilerKey)}`;   }   if (maps.openFreeMapBaseUrl) {     const base = String(maps.openFreeMapBaseUrl).replace(/\/$/, "");     const openStyle = style === "dark" ? "dark" : style === "terrain" ? "fiord" : style === "traffic" ? "bright" : "liberty";     if (style !== "satellite") return `${base}/styles/${openStyle}`;   }   return MAP_STYLE_URLS[style] || MAP_STYLE_URLS.standard; } function ensureFleetMapLayers() {   if (!mapReady || !map.isStyleLoaded()) return;   if (!map.getSource("route-trails")) {     map.addSource("route-trails", { type: "geojson", data: emptyFeatureCollection() });   }   if (!map.getLayer("route-trails-line")) {     map.addLayer({       id: "route-trails-line",       type: "line",       source: "route-trails",       paint: {         "line-color": ["get", "color"],         "line-width": ["case", ["get", "critical"], 5, 4],         "line-opacity": 0.72       }     });   }   if (!map.getSource("geofences")) {     map.addSource("geofences", { type: "geojson", data: emptyFeatureCollection() });   }   if (!map.getLayer("geofences-fill")) {     map.addLayer({       id: "geofences-fill",       type: "fill",       source: "geofences",       paint: {         "fill-color": ["get", "color"],         "fill-opacity": 0.16       }     });   }   if (!map.getLayer("geofences-line")) {     map.addLayer({       id: "geofences-line",       type: "line",       source: "geofences",       paint: {         "line-color": ["get", "color"],         "line-width": 2,         "line-opacity": 0.85       }     });   }   if (!map.getSource("fleet-vehicles")) {     map.addSource("fleet-vehicles", {       type: "geojson",       data: emptyFeatureCollection(),       cluster: true,       clusterRadius: 52,       clusterMaxZoom: 15     });   }   if (!map.getLayer("fleet-clusters")) {     map.addLayer({       id: "fleet-clusters",       type: "circle",       source: "fleet-vehicles",       filter: ["has", "point_count"],       paint: {         "circle-color": ["step", ["get", "point_count"], "#2563eb", 8, "#0f766e", 20, "#d97706"],         "circle-radius": ["step", ["get", "point_count"], 20, 8, 26, 20, 34],         "circle-stroke-color": "rgba(255,255,255,0.85)",         "circle-stroke-width": 2,         "circle-opacity": 0.9       }     });   }   if (!map.getLayer("fleet-cluster-count")) {     map.addLayer({       id: "fleet-cluster-count",       type: "symbol",       source: "fleet-vehicles",       filter: ["has", "point_count"],       layout: {         "text-field": ["get", "point_count_abbreviated"],         "text-font": ["Noto Sans Bold"],         "text-size": 13       },       paint: { "text-color": "#ffffff" }     });   }   if (!map.getLayer("fleet-vehicles-point")) {     map.addLayer({       id: "fleet-vehicles-point",       type: "circle",       source: "fleet-vehicles",       filter: ["!", ["has", "point_count"]],       paint: {         "circle-color": ["get", "color"],         "circle-radius": ["case", ["get", "critical"], 13, 11],         "circle-stroke-color": "#ffffff",         "circle-stroke-width": 2,         "circle-opacity": 0.94,         "circle-pitch-scale": "map"       }     });   }   if (!map.getLayer("fleet-vehicles-label")) {     map.addLayer({       id: "fleet-vehicles-label",       type: "symbol",       source: "fleet-vehicles",       filter: ["!", ["has", "point_count"]],       layout: {         "text-field": ["get", "icon"],         "text-size": 12,         "text-font": ["Noto Sans Bold"],         "text-allow-overlap": true       },       paint: { "text-color": "#ffffff" }     });   }   bindMapInteractions(); } function bindMapInteractions() {   if (map.__fleetInteractionsBound) return;   map.__fleetInteractionsBound = true;   map.on("click", "fleet-clusters", event => {     const feature = event.features && event.features[0];     if (!feature) return;     map.easeTo({ center: feature.geometry.coordinates, zoom: Math.min(map.getZoom() + 2.4, 17), duration: 650 });   });   map.on("click", "fleet-vehicles-point", event => {     const feature = event.features && event.features[0];     if (!feature) return;     const vehicle = lastVehicles.find(item => String(item.id) === String(feature.properties.id));     const popupHtml = feature.properties.popup || "";     if (fleetPopup) fleetPopup.remove();     fleetPopup = new maplibregl.Popup({ closeButton: true, maxWidth: "280px" })       .setLngLat(feature.geometry.coordinates)       .setHTML(popupHtml)       .addTo(map);     if (vehicle) showVehicleDetail(vehicle);   });   map.on("mouseenter", "fleet-clusters", () => map.getCanvas().style.cursor = "pointer");   map.on("mouseenter", "fleet-vehicles-point", () => map.getCanvas().style.cursor = "pointer");   map.on("mouseleave", "fleet-clusters", () => map.getCanvas().style.cursor = "");   map.on("mouseleave", "fleet-vehicles-point", () => map.getCanvas().style.cursor = "");   map.on("click", "geofences-fill", event => {     const feature = event.features && event.features[0];     if (!feature) return;     new maplibregl.Popup({ maxWidth: "300px" })       .setLngLat(event.lngLat)       .setHTML(feature.properties.popup || feature.properties.name || "Geocerca")       .addTo(map);   }); } function vehicleToFeature(vehicle) {   if (!vehicle.latitude || !vehicle.longitude) return null;   const profile = vehicleProfiles[vehicle.type?.toUpperCase()] || { icon: "V", color: "#3B82F6" };   const color = vehicle.status === "Crítica" ? "#ef4444" : (statusColors[vehicle.status] || profile.color || "#3B82F6");   const isCrítical = vehicle.risk && vehicle.risk.level === "Crítico";   return {     type: "Feature",     id: vehicle.id,     geometry: { type: "Point", coordinates: [Number(vehicle.longitude), Number(vehicle.latitude)] },     properties: {       id: vehicle.id,       plate: vehicle.plate,       icon: profile.icon || "V",       color,       critical: Boolean(isCrítical),       speed: vehicle.speed || 0,       popup: `         <strong>${vehicle.plate}</strong><br>         ${vehicle.name}<br>         Conductor: ${vehicle.driver}<br>         Estado: ${vehicle.status}<br>         Velocidad: ${vehicle.speed || 0} km/h       `     }   }; } function routeFeatureForVehicle(vehicle) {   if (!vehicle.latitude || !vehicle.longitude) return null;   const routeColor = vehicle.status === "Crítica"     ? (telemetryConfig?.maps?.criticalRouteColor || "#ef4444")     : vehicle.status === "Con novedad" ? "#f59e0b" : (telemetryConfig?.maps?.routeColor || "#3B82F6");   const lng = Number(vehicle.longitude);   const lat = Number(vehicle.latitude);   return {     type: "Feature",     geometry: {       type: "LineString",       coordinates: [         [lng - 0.022, lat - 0.018],         [lng - 0.012, lat - 0.008],         [lng, lat]       ]     },     properties: {       id: `${vehicle.id}-route`,       color: routeColor,       critical: vehicle.status === "Crítica"     }   }; } function setSourceData(id, data) {   const source = map.getSource(id);   if (source && source.setData) source.setData(data); } function interpolateFleetFeatures(fromMap, targetFeatures, progress) {   return {     type: "FeatureCollection",     features: targetFeatures.map(feature => {       const previous = fromMap.get(String(feature.id));       if (!previous) return feature;       const [fromLng, fromLat] = previous.geometry.coordinates;       const [toLng, toLat] = feature.geometry.coordinates;       return {         ...feature,         geometry: {           ...feature.geometry,           coordinates: [             fromLng + (toLng - fromLng) * progress,             fromLat + (toLat - fromLat) * progress           ]         }       };     })   }; } function circleToPolygon(centerLng, centerLat, radiusMeters, steps = 72) {   const coords = [];   const earthRadius = 6378137;   const latRad = centerLat * Math.PI / 180;   for (let i = 0; i <= steps; i++) {     const bearing = (i / steps) * Math.PI * 2;     const lat = centerLat + (radiusMeters / earthRadius) * (180 / Math.PI) * Math.cos(bearing);     const lng = centerLng + (radiusMeters / earthRadius) * (180 / Math.PI) * Math.sin(bearing) / Math.cos(latRad);     coords.push([lng, lat]);   }   return coords; } function renderGeofences(geofences) {   pendingGeofences = geofences || [];   if (!mapReady || !map.isStyleLoaded()) return;   ensureFleetMapLayers();   const features = pendingGeofences.map(gf => {     const color = gf.type === "high_risk" ? "#ef4444" : (gf.type === "speed_limit" ? "#facc15" : "#3b82f6");     const popup = `       <strong>${gf.name}</strong><br>       Tipo: ${String(gf.type || "").replace("_", " ")}<br>       ${gf.rules?.maxSpeed ? `Vel. Max: ${gf.rules.maxSpeed} km/h<br>` : ""}       ${gf.rules?.minStopTime ? `Parada Min: ${gf.rules.minStopTime / (60 * 1000)} min<br>` : ""}       ${userRole === "admin" ? `         <div style="display:flex; gap:5px; margin-top:10px;">           <button onclick="editGeofence('${gf.id}')" style="background:#d97706; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; flex:1">Editar</button>           <button onclick="deleteGeofence('${gf.id}')" style="background:#dc2626; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; flex:1">Eliminar</button>         </div>       ` : ""}     `;     if (gf.geometry?.type === "Circle") {       const [lon, lat] = gf.geometry.coordinates;       return {         type: "Feature",         geometry: { type: "Polygon", coordinates: [circleToPolygon(lon, lat, Number(gf.geometry.radius || 500))] },         properties: { id: gf.id, name: gf.name, color, popup }       };     }     if (gf.geometry?.type === "Polygon") {       return {         type: "Feature",         geometry: gf.geometry,         properties: { id: gf.id, name: gf.name, color, popup }       };     }     return null;   }).filter(Boolean);   setSourceData("geofences", { type: "FeatureCollection", features }); } function renderCharts(vehicles) {   const ctx = document.getElementById('statusChart')?.getContext('2d');   if (!ctx || !window.Chart) return;   const riskPercentages = vehicles.map(v => v.risk?.percentage).filter(p => p !== undefined);   const avgRisk = riskPercentages.length > 0 ? Math.round(riskPercentages.reduce((a, b) => a + b, 0) / riskPercentages.length) : 0;   let avgColor = "#22C55E";   if (avgRisk > 85) avgColor = "#7f1d1d";   else if (avgRisk > 60) avgColor = "#b91c1c";   else if (avgRisk > 30) avgColor = "#f59e0b";   const chartData = [avgRisk, 100 - avgRisk];   if (statusChart) {     statusChart.data.datasets[0].data = chartData;     statusChart.data.datasets[0].backgroundColor = [avgColor, "#f1f5f9"];     statusChart.options.plugins.title.text = `Riesgo Promedio Flota: ${avgRisk}%`;     statusChart.update();   } else {     statusChart = new Chart(ctx, {       type: 'doughnut',       data: {         labels: ['Riesgo', 'Seguridad'],         datasets: [{           data: chartData,           backgroundColor: [avgColor, "#f1f5f9"],           borderWidth: 0,           circumference: 180,           rotation: 270         }]       },       options: {         responsive: true,         maintainAspectRatio: false,         cutout: '80%',         plugins: {           legend: { display: false },           title: {             display: true,             text: `Riesgo Promedio Flota: ${avgRisk}%`,             position: 'bottom',             font: { size: 16, weight: 'bold' }           }         }       }     });   } } // --- GESTIÃ“N DE GEOCERCAS --- let gfCreationMode = false; function initGeofenceUI() {   const control = document.createElement('div');   control.className = "geofence-control";   control.innerHTML = `     <button id="btnToggleGf">Nueva Geocerca</button>     <div id="gfStatus">MODO EDICION: Clic en mapa para el centro</div>   `;   (document.querySelector(".map-stage") || document.body).appendChild(control);   document.getElementById('btnToggleGf').addEventListener('click', function() {     gfCreationMode = !gfCreationMode;     this.textContent = gfCreationMode ? 'Cancelar' : 'Nueva Geocerca';     this.classList.toggle("danger", gfCreationMode);     document.getElementById('gfStatus').style.display = gfCreationMode ? 'block' : 'none';   }); } map.on('click', async function(e) {   if (!gfCreationMode) return;   const name = prompt("Nombre de la zona:");   if (!name) return;   const radius = prompt("Radio de cobertura (metros):", "500");   if (!radius) return;   const type = prompt("Categoría (high_risk, speed_limit, mandatory_rest):", "high_risk");     const res = await apiFetch("/api/geofences", {     method: 'POST',     body: JSON.stringify({       name,       type: type || "high_risk",       geometry: {         type: "Circle",         coordinates: [e.lngLat.lng, e.lngLat.lat],         radius: parseInt(radius)       }     })   });   if (res.ok) {     showNotification("Operación exitosa", "Geocerca registrada en el sistema", "success");     gfCreationMode = false;     const btn = document.getElementById('btnToggleGf');     btn.textContent = 'Nueva Geocerca';     btn.classList.remove("danger");     document.getElementById('gfStatus').style.display = 'none';     loadGeofences();   } }); async function deleteGeofence(id) {   if (!confirm("?Deseas eliminar permanentemente esta geocerca?")) return;   const res = await apiFetch(`/api/geofences/${id}`, { method: 'DELETE' });   if (res.ok) {     showNotification("Eliminado", "La geocerca ha sido removida", "info");     loadGeofences();   } } async function editGeofence(id) {   const listRes = await apiFetch("/api/geofences");   const list = await listRes.json();   const gf = list.find(g => g.id === id);   if (!gf) return;   const name = prompt("Nombre:", gf.name);   const radius = prompt("Radio:", gf.geometry.radius);   if (!name && !radius) return;   const res = await apiFetch(`/api/geofences/${id}`, {     method: 'PUT',     body: JSON.stringify({ name: name || gf.name, geometry: { ...gf.geometry, radius: parseInt(radius) || gf.geometry.radius } })   });   if (res.ok) {     showNotification("Actualizado", "Geocerca modificada", "success");     loadGeofences();   } } window.deleteGeofence = deleteGeofence; window.editGeofence = editGeofence; initGeofenceUI(); async function loadGeofences() {   const res = await apiFetch("/api/geofences");   const geofences = res.ok ? await res.json() : [];   renderGeofences(geofences); } async function renderAlertPanel() {   const alertContainer = document.getElementById("alertPanel");   const incidentContainer = document.getElementById("incidentPanel");     const res = await fetch("/api/alerts", { headers: { "Authorization": `Bearer ${getToken()}` } });   const alerts = res.ok ? await res.json() : [];   // Filtrar Alertas de Vehículos   if (alertContainer) {     const vehicleAlerts = alerts.filter(a => a.placa !== "GLOBAL");     alertContainer.innerHTML = `       <h3>Alertas Operacionales</h3>       <div class="alert-list">         ${vehicleAlerts.length ? vehicleAlerts.slice(0, 5).map(alert => `           <div class="alert-item priority-${alert.prioridad.toLowerCase()}">             <strong>${alert.placa}</strong>: ${alert.mensaje}           </div>         `).join("") : "<p>Operación estable.</p>"}       </div>     `;   }   // Filtrar Incidentes Externos (RSS)   if (incidentContainer) {     const incidents = alerts.filter(a => a.placa === "GLOBAL");     incidentContainer.innerHTML = `       <h3>Incidentes en Vía (Tiempo Real)</h3>       <div class="incident-list">         ${incidents.length ? incidents.map(inc => `           <div class="incident-item">             <strong>${inc.tipo}</strong>: ${inc.mensaje}             ${inc.link ? `<br><a href="${inc.link}" target="_blank" style="color:#60a5fa">Ver noticia</a>` : ''}           </div>         `).join("") : "<p>Sin reportes externos.</p>"}       </div>     `;   } } async function cargarVehículos() {   try {     const liveResponse = await apiFetch("/api/fleet/live");     if (!liveResponse.ok) throw new Error("No se pudo cargar telemetría viva");     const live = await liveResponse.json();     telemetryConfig = live.telemetryConfig || telemetryConfig;     const positions = live.positions || [];     const devices = live.devices || [];     const localVehicles = live.vehicles || [];     applyConfiguredMapLayer();     lastVehicles = mergeFleet(localVehicles, devices, positions);     renderVehicles(lastVehicles);     renderMarkers(lastVehicles);     renderCounters(lastVehicles);     renderCharts(lastVehicles);     const now = Date.now();     if (now - lastFleetRefresh > 25000) {       loadGeofences();       renderAlertPanel();       renderDriverAudit();       lastFleetRefresh = now;     }     // Alerta automática si detectamos un vehículo crítico nuevo     lastVehicles.forEach(v => {       if (v.risk?.level === "Crítico" && v.speed > 0) {         showNotification("RIESGO CRÍTICO", `Vehículo ${v.plate} en movimiento con riesgo alto.`, "danger");       }     });   } catch (error) {     console.error("ERROR:", error);   } } function startTelemetryStream() {   if (telemetryStream || !window.EventSource || !getToken() || getToken() === "demo-static-token") return;   telemetryStream = new EventSource(`/api/telemetry/stream?token=${encodeURIComponent(getToken())}`);   telemetryStream.addEventListener("snapshot", event => {     const live = JSON.parse(event.data);     telemetryConfig = live.telemetryConfig || telemetryConfig;     lastVehicles = mergeFleet(live.vehicles || [], live.devices || [], live.positions || []);     renderVehicles(lastVehicles);     renderMarkers(lastVehicles);     renderCounters(lastVehicles);   });   telemetryStream.addEventListener("telemetry", event => {     const payload = JSON.parse(event.data);     if (payload.type === "config") {       telemetryConfig = payload.config;       applyConfiguredMapLayer();       return;     }     if (payload.positions?.length) {       applyLivePositions(payload.positions);     }   });   telemetryStream.onerror = () => {     telemetryStream?.close();     telemetryStream = null;     setTimeout(startTelemetryStream, 5000);   }; } function loadSocketClient() {   if (window.io) return Promise.resolve();   return new Promise(resolve => {     const script = document.createElement("script");     script.src = "/socket.io/socket.io.js";     script.onload = resolve;     script.onerror = resolve;     document.head.appendChild(script);   }); } async function startSocketTelemetry() {   if (telemetrySocket || !getToken() || getToken() === "demo-static-token") return false;   await loadSocketClient();   if (!window.io) return false;   telemetrySocket = window.io({     auth: { token: getToken() },     transports: ["websocket", "polling"],     reconnection: true   });   telemetrySocket.on("snapshot", live => {     telemetryConfig = live.telemetryConfig || telemetryConfig;     lastVehicles = mergeFleet(live.vehicles || [], live.devices || [], live.positions || []);     renderVehicles(lastVehicles);     renderMarkers(lastVehicles);     renderCounters(lastVehicles);     applyConfiguredMapLayer();   });   telemetrySocket.on("telemetry", payload => {     if (payload.type === "config") {       telemetryConfig = payload.config;       applyConfiguredMapLayer();       showNotification("Mapas actualizados", "La configuración de GPS y estilos fue sincronizada.", "info");       return;     }     if (payload.type === "incident" && payload.incident) {       showNotification("Alerta móvil", `${payload.incident.plate || "Móvil"} - ${payload.incident.type}`, payload.incident.severity === "Alta" ? "danger" : "info");       renderAlertPanel();       return;     }     if (payload.positions?.length) {       applyLivePositions(payload.positions);     }   });   telemetrySocket.on("connect_error", () => {     telemetrySocket?.disconnect();     telemetrySocket = null;     startTelemetryStream();   });   return true; } function applyLivePositions(positions) {   positions.forEach(position => {     const plate = String(position.placa || position.deviceId || "").toUpperCase();     const vehicle = lastVehicles.find(item => String(item.plate || item.traccarDeviceId).toUpperCase() === plate);     if (vehicle) {       vehicle.latitude = position.latitude;       vehicle.longitude = position.longitude;       vehicle.speed = Math.round(position.speed || 0);       vehicle.fixTime = position.fixTime || position.createdAt;     }   });   renderVehicles(lastVehicles);   renderMarkers(lastVehicles);   renderCounters(lastVehicles); } function applyConfiguredMapLayer() {   const maps = telemetryConfig?.maps;   if (!maps) return;   const selectedKey = maps.style || (maps.darkMode ? "dark" : "standard");   const quick = document.getElementById("mapStyleQuick");   if (quick && quick.value !== selectedKey) quick.value = selectedKey;   const selectedStyle = resolveMapStyle(maps);   if (selectedStyle && selectedKey !== activeConfiguredLayer) {     activeConfiguredLayer = selectedKey;     map.setStyle(selectedStyle);   } } async function setMapStyleFromControl(style) {   const previous = telemetryConfig || { maps: {}, tracking: {}, analytics: {} };   telemetryConfig = {     ...previous,     maps: {       ...(previous.maps || {}),       engine: "maplibre",       provider: previous.maps?.provider || "openfreemap",       style,       darkMode: style === "dark",       satellite: style === "satellite",       terrain: style === "terrain",       traffic: style === "traffic"     }   };   applyConfiguredMapLayer();   if (userRole !== "admin") return;   try {     await apiFetch("/api/telemetry/config", {       method: "PUT",       body: JSON.stringify(telemetryConfig)     });     showNotification("Mapa actualizado", "Estilo sincronizado con central y apps conectadas.", "success");   } catch (error) {     showNotification("Mapa local", "El estilo quedó aplicado en esta sesión.", "info");   } } function mergeFleet(localVehicles, devices, positions) {   const localByDevice = {};   const localByPlate = {};   const matchedLocalIds = new Set();   localVehicles.forEach(vehicle => {     if (vehicle.traccarDeviceId) localByDevice[vehicle.traccarDeviceId] = vehicle;     if (vehicle.plate) localByPlate[String(vehicle.plate).toUpperCase()] = vehicle;   });   return positions.map(position => {     const device = devices.find(item => item.id === position.deviceId) || {};     const plate = String(device.uniqueId || device.name || "").toUpperCase();     const local = localByDevice[position.deviceId] || localByPlate[plate] || {};     if (local.id) matchedLocalIds.add(local.id);     return {       id: local.id || `traccar-${position.deviceId}`,       traccarDeviceId: position.deviceId,       plate: local.plate || device.name || plate || "SIN PLACA",       name: local.name || device.name || "Vehículo",       type: local.type || "Vehículo",       driver: local.driver || "Sin conductor asignado",       status: local.status || "Sin inspección",       risk: local.risk,       lastInspection: local.lastInspection,       latitude: position.latitude,       longitude: position.longitude,       speed: Math.round(position.speed || 0),       fixTime: position.fixTime     };   }).concat(     localVehicles       .filter(vehicle => !vehicle.traccarDeviceId && !matchedLocalIds.has(vehicle.id))       .map(vehicle => ({         ...vehicle,         latitude: null,         longitude: null,         speed: 0       }))   ); } // Renderiza la lista de vehículos en la barra lateral function renderVehicles(vehicles) {   const query = document.getElementById("searchVehicle").value.toLowerCase();   const onlyRisk = document.getElementById("filterRisk")?.checked;   const vehiclesDiv = document.getElementById("vehicles");   vehiclesDiv.innerHTML = "";   vehicles     .filter(vehicle => {       const text = `${vehicle.plate} ${vehicle.driver} ${vehicle.name}`.toLowerCase();       const riskLevel = vehicle.risk?.level || "";       const isRisk = vehicle.status === "Crítica" || riskLevel === "Alto" || riskLevel === "Crítico" || riskLevel === "Crítico";       return text.includes(query) && (!onlyRisk || isRisk);     })     .forEach(vehicle => {       const status = vehicle.status || "Sin inspección";       const color = statusColors[status] || "#64748b";       const lastInspection = vehicle.lastInspection         ? new Date(vehicle.lastInspection.createdAt).toLocaleString("es-CO")         : "Sin preoperacional";       vehiclesDiv.insertAdjacentHTML("beforeend", `         <article class="vehicle-card" onclick="focusVehicle('${vehicle.id}')">           <div>             <strong>${vehicle.plate}</strong>             <span>${vehicle.type}</span>           </div>           <p>${vehicle.driver}</p>           <div class="vehicle-meta">             <span style="--status-color:${color}">${status}</span>             <span>${vehicle.speed || 0} km/h</span>           </div>           <small>${lastInspection}</small>         </article>       `);     }); } // Renderiza los marcadores en el mapa function renderMarkers(vehicles) {   pendingVehicles = vehicles || [];   if (!mapReady || !map.isStyleLoaded()) return;   ensureFleetMapLayers();   const vehicleFeatures = pendingVehicles.map(vehicleToFeature).filter(Boolean);   const routeFeatures = pendingVehicles.map(routeFeatureForVehicle).filter(Boolean);   setSourceData("route-trails", { type: "FeatureCollection", features: routeFeatures });   const targetMap = new Map(vehicleFeatures.map(feature => [String(feature.id), feature]));   if (fleetAnimationFrame) cancelAnimationFrame(fleetAnimationFrame);   const startMap = lastVehicleFeatureMap;   const startTime = performance.now();   const duration = 700;   function animate(now) {     const progress = Math.min((now - startTime) / duration, 1);     const eased = 1 - Math.pow(1 - progress, 3);     setSourceData("fleet-vehicles", interpolateFleetFeatures(startMap, vehicleFeatures, eased));     if (progress < 1) {       fleetAnimationFrame = requestAnimationFrame(animate);     } else {       lastVehicleFeatureMap = targetMap;     }   }   if (!lastVehicleFeatureMap.size) {     setSourceData("fleet-vehicles", { type: "FeatureCollection", features: vehicleFeatures });     lastVehicleFeatureMap = targetMap;     return;   }   fleetAnimationFrame = requestAnimationFrame(animate); } function animateMarker() {} // Renderiza los contadores de la flota function renderCounters(vehicles) {   setText("fleetCount", vehicles.length);   setText("operativas", vehicles.filter(v => v.status === "Operativa").length);   setText("novedad", vehicles.filter(v => v.status === "Con novedad" || v.status === "En revisión").length);   setText("criticas", vehicles.filter(v => v.status === "Crítica").length);   setText("briefOnline", vehicles.filter(v => v.latitude && v.longitude).length);   setText("briefRisk", vehicles.filter(v => ["Alto", "Crítico"].includes(v.risk?.level)).length);   setText("briefAlerts", vehicles.filter(v => v.status === "Crítica" || v.status === "Con novedad" || v.status === "En revisión").length); } function setText(id, value) {   const element = document.getElementById(id);   if (element) element.textContent = value; } // Enfoca un vehículo en el mapa y muestra su detalle function focusVehicle(id) {   const vehicle = lastVehicles.find(item => item.id === id);   if (vehicle?.latitude && vehicle?.longitude) {     map.easeTo({       center: [Number(vehicle.longitude), Number(vehicle.latitude)],       zoom: 16,       pitch: 48,       duration: 800,       essential: true     });   }   if (vehicle) {     showVehicleDetail(vehicle);   } } // Muestra el panel de detalle de un vehículo async function showVehicleDetail(vehicle) {   const panel = document.getElementById("vehicleDetail");   const content = document.getElementById("vehicleDetailContent");   panel.classList.add("open");   content.innerHTML = `     <p class="eyebrow">Vehículo seleccionado</p>     <h2>${vehicle.plate}</h2>     <p>${vehicle.name} - ${vehicle.type}</p>     <div class="detail-metrics">       <div><strong>${vehicle.speed || 0}</strong><span>km/h</span></div>       <div><strong>${vehicle.status}</strong><span>Estado</span></div>     </div>     <div class="risk-loader">       <div class="spinner"></div>       <p>Calculando riesgo dinámico...</p>     </div>   `;   // Obtener el reporte completo del vehículo   const response = await apiFetch(`/api/reports/vehicle/${encodeURIComponent(vehicle.plate)}`);   const report = await response.json();   content.innerHTML = `     <p class="eyebrow">Vehículo seleccionado</p>     <h2>${report.vehicle.plate}</h2>     <p>${report.vehicle.name} - ${report.vehicle.type}</p>     <div class="detail-metrics">       <div><strong>${vehicle.speed || 0}</strong><span>km/h</span></div>       <div><strong>${report.vehicle.status}</strong><span>Estado</span></div>       <div style="background: ${report.risk.color}; color: white; border-radius: 4px; padding: 4px;">         <strong>${report.risk.percentage}%</strong>         <span>${report.risk.level}</span>       </div>       <div>         <strong>${WEATHER_ICONS[report.weather] || WEATHER_ICONS.default}</strong>         <span>${report.weather}</span>         <span>Clima</span>       </div>       <div>         <strong>${report.vehicle.lastInspection?.kilometraje || 0}</strong>         <span>km actuales</span>       </div>       <div><strong>${report.summary.inspections}</strong><span>Inspecciones</span></div>       <div><strong>${report.summary.alerts}</strong><span>Alertas</span></div>     </div>     <div class="risk-progress-container">       <div class="risk-progress-bar" style="width: ${report.risk.percentage}%; background-color: ${report.risk.color};"></div>     </div>     <div class="hseq-summary" style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-top: 15px;">       <h3>Gestión HSEQ y Riesgo Humano</h3>       <p><strong>Conductor:</strong> ${report.vehicle.driver || "Sin asignar"}</p>       <p><strong>Estado Emocional:</strong> ${report.vehicle.lastInspection?.estadoEmocionalPre || "No registrado"}</p>       <p><strong>Nivel de Fatiga:</strong>         <span style="color: ${report.vehicle.lastInspection?.fatiga === 'Alta' ? '#dc2626' : '#16a34a'}">           ${report.vehicle.lastInspection?.fatiga || "Bajo"}         </span>       </p>       <p><strong>Horas de Conducción:</strong> ${report.vehicle.lastInspection?.horasConduccion || 0} h</p>     </div>     <div class="risk-breakdown" style="font-size: 0.85rem; background: #fff; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 10px;">       <strong>Desglose de Riesgo (Fórmula R):</strong><br>       Clima: ${report.vehicle.lastInspection?.clima || 'N/A'} |       Zona: ${report.vehicle.lastInspection?.zona || 'N/A'} |       Tráfico: ${report.vehicle.lastInspection?.trafico || 'N/A'}<br>       <strong>Recomendación:</strong> ${report.risk.advice}     </div>     <h3>Último preoperacional</h3>     <p>${report.vehicle.lastInspection ? new Date(report.vehicle.lastInspection.createdAt).toLocaleString("es-CO") : "Sin registro"}</p>         <h3>Evidencia Fotográfica</h3>     <div class="photo-gallery" id="gallery-${report.vehicle.plate}">       ${report.vehicle.lastInspection?.fotos?.length         ? report.vehicle.lastInspection.fotos.map((foto, idx) => `<img src="${foto}" class="photo-item" onclick="openPhotoModalFromGallery('gallery-${report.vehicle.plate}', ${idx})">`).join("")         : "<p>No hay fotos registradas.</p>"       }     </div>         ${userRole === 'admin' ? `       <button class="control-btn" style="margin-top:20px; width:100%; background:#1e293b" onclick="editVehicleForm('${report.vehicle.id}')">         Editar información de activo       </button>       <button class="secondary-link" style="margin-top:10px; width:100%; text-align:center; display:block; border:1px dashed #cbd5e1" onclick="openDeviceAssignment('${report.vehicle.id}')">         Vincular GPS Traccar       </button>     ` : ''}     <a class="secondary-link" style="margin-top:10px; width:100%; text-align:center; display:block;" target="_blank" href="/api/reports/vehicle/${encodeURIComponent(report.vehicle.plate)}/pdf?token=${encodeURIComponent(getToken())}">Generar PDF</a>   `; } function closeVehicleDetail() { document.getElementById("vehicleDetail").classList.remove("open"); } async function renderDriverAudit() {   const container = document.getElementById("driverRanking");   if (!container) return;   try {     const response = await apiFetch("/api/reports/audit/drivers");     const drivers = response.ok ? await response.json() : [];     container.innerHTML = `       <h3>Ranking conductores</h3>       ${drivers.length ? drivers.slice(0, 5).map(driver => `         <div class="incident-item" style="color:#172033; border-bottom:1px solid #e2e8f0">           <strong>${driver.name}</strong><br>           Cumplimiento: ${driver.score}% | GPS: ${driver.gpsStatus}         </div>       `).join("") : "<p>Sin auditoría registrada.</p>"}     `;   } catch (error) {     container.innerHTML = "<p>No se pudo cargar ranking.</p>";   } } async function bootAuthenticatedView() {   const overlay = document.getElementById("loginOverlay");   let user = window.__demoUser || null;   let company = window.__demoCompany || null;   try { user = JSON.parse(localStorage.getItem("user") || "null") || user; company = JSON.parse(localStorage.getItem("company") || "null") || company; } catch (error) {}   if (!getToken()) {     if (overlay) overlay.style.display = "flex";     return;   }   if (overlay) overlay.style.display = "none";   userRole = user?.role || "guest";   const logo = document.getElementById("companyLogoImg");   const phrase = document.getElementById("brandPhrase");   if (logo && company?.logoDataUrl) logo.src = company.logoDataUrl;   if (phrase) phrase.textContent = company?.brandPhrase || company?.name || "Fleet Command";   await loadProfiles();   await updateSafetyPhrase();   await cargarVehículos();   const socketStarted = await startSocketTelemetry();   if (!socketStarted) startTelemetryStream();   setInterval(cargarVehículos, 45000);   setInterval(updateSafetyPhrase, 90000); } function editVehicleForm() {   window.location.href = "/ajustes.html"; } function openDeviceAssignment() {   window.location.href = "/ajustes.html"; } window.handleLogin = handleLogin; window.logout = logout; window.updateBranding = updateBranding; window.closeVehicleDetail = closeVehicleDetail; window.focusVehicle = focusVehicle; window.openPhotoModalFromGallery = openPhotoModalFromGallery; window.editVehicleForm = editVehicleForm; window.openDeviceAssignment = openDeviceAssignment; window.setMapStyleFromControl = setMapStyleFromControl; bootAuthenticatedView();
+  async function setMapStyleFromControl(style) {
+    mapStyleKey = style || "dark";
+    const quick = $("mapStyleQuick");
+    if (quick && quick.value !== mapStyleKey) quick.value = mapStyleKey;
+    if (map) map.setStyle(resolveMapStyle(mapStyleKey));
+    if (userRole === "admin") {
+      try {
+        const previous = telemetryConfig || { maps: {}, tracking: {}, analytics: {} };
+        telemetryConfig = { ...previous, maps: { ...(previous.maps || {}), engine: "maplibre", provider: previous.maps?.provider || "openfreemap", style: mapStyleKey, darkMode: mapStyleKey === "dark" } };
+        await apiFetch("/api/telemetry/config", { method: "PUT", body: JSON.stringify(telemetryConfig) });
+      } catch (error) {}
+    }
+  }
+
+  function applyConfiguredMapLayer() {
+    const configured = telemetryConfig?.maps?.style;
+    if (configured && configured !== mapStyleKey) setMapStyleFromControl(configured);
+  }
+
+  function fitFleet(animated = true) {
+    if (!map || !lastVehicles.length) return;
+    const coords = lastVehicles.filter(v => v.latitude && v.longitude).map(v => [Number(v.longitude), Number(v.latitude)]);
+    if (!coords.length) return;
+    const bounds = coords.reduce((box, coord) => box.extend(coord), new maplibregl.LngLatBounds(coords[0], coords[0]));
+    map.fitBounds(bounds, { padding: 72, maxZoom: 15, duration: animated ? 700 : 0 });
+  }
+
+  async function bootAuthenticatedView() {
+    let user = window.__demoUser || null;
+    let company = window.__demoCompany || null;
+    try {
+      user = JSON.parse(localStorage.getItem("user") || "null") || user;
+      company = JSON.parse(localStorage.getItem("company") || "null") || company;
+    } catch (error) {}
+    userRole = user?.role || "guest";
+    if (!getToken()) {
+      const overlay = $("loginOverlay");
+      if (overlay) overlay.style.display = "flex";
+      return;
+    }
+    const overlay = $("loginOverlay");
+    if (overlay) overlay.style.display = "none";
+    const logo = $("companyLogoImg");
+    if (logo && company?.logoDataUrl) logo.src = company.logoDataUrl;
+    setText("brandPhrase", company?.brandPhrase || company?.name || "Fleet Command");
+    initMonitorMap();
+    if ($("map")) {
+      await loadFleet();
+      setInterval(loadFleet, 45000);
+    }
+  }
+
+  function logout() {
+    try { localStorage.clear(); } catch (error) {}
+    window.location.href = "/login.html";
+  }
+
+  function updateBranding() {
+    window.location.href = "/ajustes.html";
+  }
+
+  window.apiFetch = apiFetch;
+  window.getToken = getToken;
+  window.showNotification = showNotification;
+  window.loadIntelligenceData = loadIntelligenceData;
+  window.triggerPDFReport = triggerPDFReport;
+  window.exportData = exportData;
+  window.openReportGenerator = openReportGenerator;
+  window.setMapStyleFromControl = setMapStyleFromControl;
+  window.focusVehicle = focusVehicle;
+  window.closeVehicleDetail = closeVehicleDetail;
+  window.logout = logout;
+  window.updateBranding = updateBranding;
+  window.editSelectedGeofence = editSelectedGeofence;
+  window.deleteSelectedGeofence = deleteSelectedGeofence;
+
+  $("searchVehicle")?.addEventListener("input", () => renderVehicles(lastVehicles));
+  $("filterRisk")?.addEventListener("change", () => renderVehicles(lastVehicles));
+  document.addEventListener("DOMContentLoaded", () => {
+    injectControlStyles();
+    loadIntelligenceData();
+    bootAuthenticatedView();
+  });
+  if (document.readyState !== "loading") {
+    injectControlStyles();
+    bootAuthenticatedView();
+  }
+})();

@@ -72,6 +72,7 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const pageRoutes = {
+    "/pesv": "pesv.html",
     "/login": "login.html",
     "/dashboard": "monitor.html",
     "/monitor": "monitor.html",
@@ -88,6 +89,10 @@ const pageRoutes = {
 
 Object.entries(pageRoutes).forEach(([route, fileName]) => {
     app.get(route, (req, res) => res.sendFile(path.join(__dirname, "public", fileName)));
+});
+
+app.get("/marketing", (req, res) => {
+    res.redirect(302, "https://marketing-restaurantes.vercel.app");
 });
 
 /**
@@ -1377,6 +1382,98 @@ function csvEscape(value) {
     return `"${text.replace(/"/g, '""')}"`;
 }
 
+function rowsToCsv(rows, preferredHeader = []) {
+    const keys = preferredHeader.length
+        ? preferredHeader
+        : Array.from(rows.reduce((set, row) => {
+            Object.keys(row || {}).forEach(key => set.add(key));
+            return set;
+        }, new Set()));
+    const body = rows.map(row => keys.map(key => csvEscape(row?.[key])).join(","));
+    return [keys.join(","), ...body].join("\n");
+}
+
+function sendDataExport(res, rows, format, filename, header = []) {
+    if (format === "json") {
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}.json"`);
+        return res.json(rows);
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}.csv"`);
+    return res.send(rowsToCsv(rows, header));
+}
+
+function normalizeGeofenceRules(rules = {}) {
+    return {
+        alertOnEnter: rules.alertOnEnter !== false && rules.alertOnEntry !== false,
+        alertOnEntry: rules.alertOnEnter !== false && rules.alertOnEntry !== false,
+        alertOnExit: rules.alertOnExit !== false,
+        maxSpeed: rules.maxSpeed ? Number(rules.maxSpeed) : undefined,
+        minStopTime: rules.minStopTime ? Number(rules.minStopTime) : undefined,
+        color: rules.color || "#38bdf8",
+        notifyRoles: Array.isArray(rules.notifyRoles) ? rules.notifyRoles : ["admin", "supervisor"]
+    };
+}
+
+function normalizeGeofenceGeometry(geometry) {
+    if (!geometry || typeof geometry !== "object") {
+        throw new Error("geometry es obligatorio");
+    }
+    if (geometry.type === "Circle") {
+        const coordinates = Array.isArray(geometry.coordinates) ? geometry.coordinates.map(Number) : [];
+        const radius = Number(geometry.radius || 0);
+        if (coordinates.length !== 2 || coordinates.some(value => !Number.isFinite(value)) || !Number.isFinite(radius) || radius <= 0) {
+            throw new Error("Circle requiere coordinates [lng, lat] y radius positivo");
+        }
+        return { type: "Circle", coordinates, radius };
+    }
+    if (geometry.type === "Polygon") {
+        const ring = geometry.coordinates?.[0];
+        if (!Array.isArray(ring) || ring.length < 4) {
+            throw new Error("Polygon requiere minimo tres vertices y cierre");
+        }
+        const normalizedRing = ring.map(point => {
+            const lng = Number(point?.[0]);
+            const lat = Number(point?.[1]);
+            if (!Number.isFinite(lng) || !Number.isFinite(lat)) throw new Error("Coordenadas invalidas");
+            return [lng, lat];
+        });
+        const first = normalizedRing[0];
+        const last = normalizedRing[normalizedRing.length - 1];
+        if (first[0] !== last[0] || first[1] !== last[1]) normalizedRing.push([...first]);
+        return { type: "Polygon", coordinates: [normalizedRing] };
+    }
+    throw new Error("Tipo de geometria no soportado");
+}
+
+function pointInPolygon(lat, lon, polygon) {
+    const ring = polygon?.coordinates?.[0] || [];
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = Number(ring[i][0]);
+        const yi = Number(ring[i][1]);
+        const xj = Number(ring[j][0]);
+        const yj = Number(ring[j][1]);
+        const intersects = ((yi > lat) !== (yj > lat)) &&
+            (lon < (xj - xi) * (lat - yi) / ((yj - yi) || Number.EPSILON) + xi);
+        if (intersects) inside = !inside;
+    }
+    return inside;
+}
+
+function isPointInsideGeofence(ping, geofence) {
+    const geometry = geofence.geometry || {};
+    if (geometry.type === "Circle") {
+        const [gfLon, gfLat] = geometry.coordinates;
+        return calculateDistance(ping.latitude, ping.longitude, gfLat, gfLon) <= Number(geometry.radius || 0);
+    }
+    if (geometry.type === "Polygon") {
+        return pointInPolygon(Number(ping.latitude), Number(ping.longitude), geometry);
+    }
+    return false;
+}
+
 function routeToCsv(points) {
     const header = ["fixTime", "latitude", "longitude", "speed", "course", "address"];
     const rows = points.map(point => header.map(key => csvEscape(point[key])).join(","));
@@ -2510,26 +2607,46 @@ app.get("/api/geofences", authRequired, catchAsync(async (req, res) => {
 }));
 
 app.post("/api/geofences", authRequired, roleRequired(["admin"]), catchAsync(async (req, res) => {
-    const { name, type, geometry, rules } = req.body;
+    const name = String(req.body.name || "").trim();
+    if (!name) return res.status(400).json({ success: false, message: "name es obligatorio" });
+    let geometry;
+    try {
+        geometry = normalizeGeofenceGeometry(req.body.geometry);
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+    const rules = normalizeGeofenceRules(req.body.rules);
     const geofence = await prisma.geofence.create({
         data: {
             companyId: req.user.companyId,
             name,
-            type,
-            geometry: geometry, // Asegurarse de que geometry sea un JSON válido
-            rules: rules || { alertOnEntry: true }
+            type: req.body.type || geometry.type.toLowerCase(),
+            geometry,
+            rules
         }
     });
     res.status(201).json({ success: true, geofence });
 }));
 
 app.put("/api/geofences/:id", authRequired, roleRequired(["admin"]), catchAsync(async (req, res) => {
-    const { name, geometry, rules } = req.body;
+    const data = {};
+    if (req.body.name !== undefined) data.name = String(req.body.name || "").trim();
+    if (req.body.geometry !== undefined) {
+        try {
+            data.geometry = normalizeGeofenceGeometry(req.body.geometry);
+            data.type = req.body.type || data.geometry.type.toLowerCase();
+        } catch (error) {
+            return res.status(400).json({ success: false, message: error.message });
+        }
+    }
+    if (req.body.rules !== undefined) data.rules = normalizeGeofenceRules(req.body.rules);
+    if (data.name === "") return res.status(400).json({ success: false, message: "name es obligatorio" });
     try {
-        const geofence = await prisma.geofence.update({
-            where: { id: req.params.id },
-            data: { name, geometry, rules }
+        const existing = await prisma.geofence.findFirst({
+            where: { id: req.params.id, companyId: req.user.companyId }
         });
+        if (!existing) return res.status(404).json({ success: false, message: "Geocerca no encontrada" });
+        const geofence = await prisma.geofence.update({ where: { id: req.params.id }, data });
         res.json({ success: true, geofence });
     } catch (error) {
         res.status(404).json({ success: false, message: "Geocerca no encontrada" });
@@ -2538,6 +2655,10 @@ app.put("/api/geofences/:id", authRequired, roleRequired(["admin"]), catchAsync(
 
 app.delete("/api/geofences/:id", authRequired, roleRequired(["admin"]), catchAsync(async (req, res) => {
     try {
+        const existing = await prisma.geofence.findFirst({
+            where: { id: req.params.id, companyId: req.user.companyId }
+        });
+        if (!existing) return res.status(404).json({ success: false });
         await prisma.geofence.delete({ where: { id: req.params.id } });
         res.json({ success: true });
     } catch (error) {
@@ -3174,22 +3295,17 @@ async function processGeofenceEvents(ping) {
     let alertGenerated = false;
 
     for (const gf of geofences) {
-        if (gf.geometry.type === "Circle") {
-            const [gfLon, gfLat] = gf.geometry.coordinates;
-            const distance = calculateDistance(ping.latitude, ping.longitude, gfLat, gfLon);
-            if (distance <= gf.geometry.radius) {
-                newGeofenceId = gf.id;
-                break; // Encontró una geocerca, asumimos que solo puede estar en una a la vez para simplificar
-            }
+        if (isPointInsideGeofence(ping, gf)) {
+            newGeofenceId = gf.id;
+            break; // Encontró una geocerca, asumimos una zona activa principal.
         }
-        // TODO: Implementar lógica para Polygon
     }
 
     // Detección de Entrada/Salida
     if (newGeofenceId !== currentState.currentGeofenceId) {
         if (newGeofenceId) { // Entrada a una geocerca
             const gf = geofences.find(g => g.id === newGeofenceId);
-            if (gf && gf.rules.alertOnEntry) {
+            if (gf && (gf.rules?.alertOnEntry || gf.rules?.alertOnEnter)) {
                 externalRoadAlerts.push({
                     prioridad: "Alta",
                     tipo: "Geocerca - Entrada",
@@ -3204,7 +3320,7 @@ async function processGeofenceEvents(ping) {
             currentState.entryTime = new Date();
         } else if (currentState.currentGeofenceId) { // Salida de una geocerca
             const gf = geofences.find(g => g.id === currentState.currentGeofenceId);
-            if (gf && gf.rules.alertOnExit) {
+            if (gf && gf.rules?.alertOnExit) {
                 externalRoadAlerts.push({
                     prioridad: "Media",
                     tipo: "Geocerca - Salida",
@@ -3295,6 +3411,76 @@ app.get("/api/alerts", authRequired, async (req, res) => {
         }));
     res.json([...alertas, ...externalRoadAlerts, ...incidentAlerts]);
 });
+
+app.get("/api/export/:resource", authRequired, catchAsync(async (req, res) => {
+    const companyId = req.user.companyId;
+    const resource = String(req.params.resource || "monitored").toLowerCase();
+    const format = String(req.query.format || "csv").toLowerCase();
+    const [vehicles, inspections, pings, incidents] = await Promise.all([
+        prisma.vehicle.findMany({ where: { companyId }, orderBy: { plate: "asc" } }),
+        prisma.inspection.findMany({ where: { companyId }, orderBy: { createdAt: "desc" }, take: 1000 }),
+        prisma.locationPing.findMany({ where: { companyId }, orderBy: { createdAt: "desc" }, take: 1000 }),
+        prisma.incident.findMany({ where: { companyId }, orderBy: { createdAt: "desc" }, take: 1000 })
+    ]);
+    const alerts = generarAlertas(inspections);
+    const latestPingByPlate = new Map();
+    pings.forEach(ping => {
+        const key = String(ping.placa || ping.vehicleId || ping.userId || "").toUpperCase();
+        if (key && !latestPingByPlate.has(key)) latestPingByPlate.set(key, ping);
+    });
+    const exports = {
+        alerts: alerts.map(alert => ({
+            tipo: alert.tipo,
+            prioridad: alert.prioridad,
+            placa: alert.placa,
+            mensaje: alert.mensaje,
+            fecha: alert.createdAt || new Date().toISOString()
+        })),
+        reports: inspections.map(item => ({
+            fecha: item.createdAt,
+            placa: item.placa,
+            conductor: item.userName,
+            resultado: item.resultado,
+            kilometraje: item.kilometraje,
+            observaciones: item.observaciones
+        })),
+        data: vehicles.map(vehicle => ({
+            placa: vehicle.plate,
+            nombre: vehicle.name,
+            tipo: vehicle.type,
+            estado: vehicle.status,
+            odometro: vehicle.odometer,
+            gps: vehicle.traccarDeviceId || "",
+            activo: vehicle.active
+        })),
+        monitored: vehicles.map(vehicle => {
+            const ping = latestPingByPlate.get(String(vehicle.plate || "").toUpperCase()) || {};
+            return {
+                placa: vehicle.plate,
+                nombre: vehicle.name,
+                tipo: vehicle.type,
+                estado: vehicle.status,
+                latitud: ping.latitude || "",
+                longitud: ping.longitude || "",
+                velocidad: ping.speed || 0,
+                ultima_senal: ping.createdAt || "",
+                gps: vehicle.traccarDeviceId || ""
+            };
+        }),
+        incidents: incidents.map(item => ({
+            fecha: item.createdAt,
+            placa: item.plate,
+            tipo: item.type,
+            severidad: item.severity,
+            estado: item.status,
+            descripcion: item.description,
+            latitud: item.latitude || "",
+            longitud: item.longitude || ""
+        }))
+    };
+    const rows = exports[resource] || exports.monitored;
+    sendDataExport(res, rows, format, `fleet-command-${resource}-${new Date().toISOString().slice(0, 10)}`);
+}));
 
 app.get("/api/reports/summary", authRequired, async (req, res) => {
     const companyId = req.user.companyId;

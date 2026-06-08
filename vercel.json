@@ -7,6 +7,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/pesv", "destination": "/pesv.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/dashboard", "destination": "/monitor.html" },
     { "source": "/monitor", "destination": "/monitor.html" },
@@ -23,6 +24,13 @@
     { "source": "/tracker", "destination": "/tracker.html" },
     { "source": "/usuarios", "destination": "/usuarios.html" },
     { "source": "/api/reports/vehicle/:plate/pdf", "destination": "/demo-report.html" }
+  ],
+  "redirects": [
+    {
+      "source": "/marketing",
+      "destination": "https://marketing-restaurantes.vercel.app",
+      "permanent": false
+    }
   ],
   "headers": [
     {
