@@ -22,3 +22,5 @@ dist/
 build/
 .DS_Store
 Thumbs.db
+
+.vercel
