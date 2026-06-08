@@ -14,7 +14,7 @@
     { "source": "/intelligence", "destination": "/intelligence.html" },
     { "source": "/referidos", "destination": "/aliados.html" },
     { "source": "/crm", "destination": "/crm.html" },
-    { "source": "/reports", "destination": "/dashboard.html" },
+    { "source": "/reports", "destination": "/reports.html" },
     { "source": "/admin", "destination": "/ajustes.html" },
     { "source": "/demo", "destination": "/demo.html" },
     { "source": "/app", "destination": "/app-download.html" },
