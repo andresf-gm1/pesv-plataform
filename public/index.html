@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Portal corporativo Promos Bogotá para acceder a la Plataforma GIS/PESV y a Marketing IA para Restaurantes y Negocios."
+      content="Promos Bogotá impulsa empresas con inteligencia artificial, marketing digital, automatización, GIS/PESV y sistemas inteligentes."
     />
-    <title>Promos Bogotá | Portal Corporativo</title>
+    <title>Promos Bogotá | IA, Marketing Digital y Sistemas Inteligentes</title>
     <link rel="canonical" href="https://pesv-plataform-ai.vercel.app/" />
-    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="preload" href="/portal.css" as="style" />
     <link rel="stylesheet" href="/portal.css" />
   </head>
   <body>
@@ -18,82 +18,178 @@
         <span class="brand-mark">PB</span>
         <span>
           <strong>Promos Bogotá</strong>
-          <small>Portal Corporativo</small>
+          <small>IA + Marketing + Sistemas</small>
         </span>
       </a>
       <nav class="main-nav" aria-label="Navegación principal">
-        <a href="#soluciones">Soluciones</a>
-        <a href="#servicios">Servicios</a>
+        <a href="#demo">Demo IA</a>
+        <a href="#plataformas">Plataformas</a>
+        <a href="#industrias">Industrias</a>
         <a href="#contacto">Contacto</a>
       </nav>
-      <a class="nav-cta" href="#soluciones">Acceder</a>
+      <a class="nav-cta" href="https://wa.me/573127894040?text=Hola,%20quiero%20una%20propuesta%20para%20mi%20empresa" target="_blank" rel="noopener">WhatsApp</a>
     </header>
 
     <main>
       <section id="inicio" class="hero">
-        <div class="hero-media" aria-hidden="true"></div>
-        <div class="hero-overlay"></div>
+        <div class="hero-bg" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
         <div class="hero-content">
-          <p class="eyebrow">Portal empresarial principal</p>
-          <h1>Soluciones digitales, GIS e inteligencia artificial para empresas que quieren crecer.</h1>
-          <p class="hero-copy">
-            Un punto de entrada profesional para clientes, aliados e inversionistas. Desde aquí puedes acceder a
-            la plataforma GIS/PESV y a la plataforma de Marketing IA para restaurantes y negocios.
-          </p>
-          <div class="hero-actions" aria-label="Accesos rápidos">
-            <a class="button primary" href="/pesv">Acceder a Plataforma PESV</a>
-            <a class="button secondary" href="/marketing">Acceder a Plataforma Marketing</a>
+          <div class="hero-copy-block reveal">
+            <p class="eyebrow">Agencia tecnológica para crecimiento empresarial</p>
+            <h1>Impulsamos empresas con Inteligencia Artificial, Marketing Digital y Sistemas Inteligentes</h1>
+            <p class="hero-copy">
+              Automatizamos procesos, generamos clientes y desarrollamos soluciones tecnológicas para negocios de cualquier tamaño.
+            </p>
+            <div class="hero-actions" aria-label="Acciones principales">
+              <a class="button primary" href="#contacto">Solicitar Propuesta</a>
+              <a class="button secondary" href="#demo">Probar Demo IA</a>
+            </div>
+            <div class="hero-proof" aria-label="Prueba social">
+              <div><strong data-count="120">0</strong><span>campañas creadas</span></div>
+              <div><strong data-count="38">0</strong><span>empresas atendidas</span></div>
+              <div><strong data-count="8500">0</strong><span>clientes impactados</span></div>
+            </div>
+          </div>
+
+          <div class="hero-showcase reveal" id="demo">
+            <div class="ai-demo-card">
+              <div class="demo-head">
+                <span>Generador IA</span>
+                <strong>Flyer comercial instantáneo</strong>
+              </div>
+              <label for="promoPrompt">Describe tu promoción</label>
+              <textarea id="promoPrompt" rows="3">3 hamburguesas con papas y gaseosa por $30.000</textarea>
+              <button class="button primary wide" id="generateFlyer" type="button">🚀 Generar Flyer IA</button>
+              <div class="flyer-preview" id="flyerPreview" aria-live="polite">
+                <span class="flyer-kicker">PROMO DEL DÍA</span>
+                <strong>3 hamburguesas + papas + gaseosa</strong>
+                <p>Por solo $30.000</p>
+                <small>Diseño listo para WhatsApp, Instagram y Facebook.</small>
+              </div>
+            </div>
+
+            <div class="platform-mockup hero-mockup" aria-label="Mockup de plataforma Promos Bogotá">
+              <div class="mockup-top"><span></span><span></span><span></span><strong>Promos AI Studio</strong></div>
+              <div class="mockup-grid">
+                <div class="mockup-panel big">
+                  <small>Leads esta semana</small>
+                  <strong>248</strong>
+                  <div class="mini-bars"><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+                <div class="mockup-panel">
+                  <small>Contenido IA</small>
+                  <strong>92%</strong>
+                </div>
+                <div class="mockup-panel accent">
+                  <small>WhatsApp</small>
+                  <strong>Activo</strong>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="soluciones" class="section">
+      <section id="plataformas" class="section platforms-section">
         <div class="section-heading">
-          <p class="eyebrow">Accesos principales</p>
-          <h2>Elige la plataforma que necesitas utilizar</h2>
-          <p>
-            Cada producto conserva sus rutas, autenticación, APIs, assets, estilos y navegación. El portal corporativo
-            funciona como entrada principal para presentar el ecosistema de forma clara y confiable.
-          </p>
+          <p class="eyebrow">Productos reales</p>
+          <h2>Interfaces listas para vender, operar y automatizar</h2>
         </div>
-
-        <div class="solution-grid">
-          <article class="solution-card gis-card">
-            <div class="card-top">
-              <span class="pill">Solución empresarial</span>
-              <span class="status">GIS / PESV</span>
+        <div class="mockup-wall">
+          <article class="product-card">
+            <div class="product-mockup pesv-ui">
+              <div class="mockup-top"><span></span><span></span><span></span><strong>GIS/PESV</strong></div>
+              <div class="map-visual"><i></i><i></i><i></i><b></b></div>
             </div>
-            <h3>🚀 Soluciones Empresariales GIS</h3>
-            <p>
-              Centro de monitoreo GPS, geocercas, PESV, reportes, auditoría operacional, preoperacionales y control
-              de flota para operación real y presentación comercial.
-            </p>
-            <ul>
-              <li>Monitoreo GPS y mapa operativo.</li>
-              <li>Geocercas, alertas y trazabilidad.</li>
-              <li>Preoperacionales, reportes y cumplimiento PESV.</li>
-              <li>Dashboards ejecutivos para gerencia y clientes.</li>
-            </ul>
-            <a class="button primary wide" id="gisLink" href="/pesv">Acceder a Plataforma PESV</a>
+            <h3>Plataforma GIS/PESV</h3>
+            <p>Monitoreo, geocercas, preoperacionales, rutas y cumplimiento operativo.</p>
+            <a class="text-link" href="/pesv">Ver plataforma</a>
           </article>
-
-          <article class="solution-card marketing-card">
-            <div class="card-top">
-              <span class="pill">Marketing IA</span>
-              <span class="status">Restaurantes y negocios</span>
+          <article class="product-card">
+            <div class="product-mockup marketing-ui">
+              <div class="mockup-top"><span></span><span></span><span></span><strong>Marketing IA</strong></div>
+              <div class="creative-board"><b></b><i></i><i></i><i></i></div>
             </div>
-            <h3>🍔 Marketing IA para Restaurantes</h3>
-            <p>
-              Plataforma para campañas, contenido, leads, automatización comercial y generación de promociones para
-              restaurantes, bares, cafeterías y negocios locales.
-            </p>
-            <ul>
-              <li>Generación de promociones y piezas comerciales.</li>
-              <li>Captura de leads y gestión de clientes.</li>
-              <li>Automatización con IA para contenido y ventas.</li>
-              <li>Herramientas para redes sociales y WhatsApp.</li>
-            </ul>
-            <a class="button primary wide" id="marketingLink" href="/marketing">Acceder a Plataforma Marketing</a>
+            <h3>Marketing IA</h3>
+            <p>Campañas, piezas comerciales, automatización, leads y contenido para vender más.</p>
+            <a class="text-link" href="/marketing">Abrir marketing</a>
+          </article>
+          <article class="product-card">
+            <div class="product-mockup dashboard-ui">
+              <div class="mockup-top"><span></span><span></span><span></span><strong>Dashboard</strong></div>
+              <div class="dashboard-lines"><i></i><i></i><i></i><i></i></div>
+            </div>
+            <h3>Dashboard empresarial</h3>
+            <p>Indicadores visuales para tomar decisiones rápidas y presentar resultados.</p>
+            <a class="text-link" href="/dashboard">Ver dashboard</a>
+          </article>
+          <article class="product-card">
+            <div class="product-mockup flyer-ui">
+              <div class="mockup-top"><span></span><span></span><span></span><strong>Flyers IA</strong></div>
+              <div class="flyer-mini"><strong>2x1</strong><span>Oferta lista</span></div>
+            </div>
+            <h3>Generador de flyers IA</h3>
+            <p>Promociones listas para WhatsApp, redes sociales y vitrinas digitales.</p>
+            <a class="text-link" href="#demo">Probar demo</a>
+          </article>
+        </div>
+      </section>
+
+      <section id="industrias" class="section industries-section">
+        <div class="section-heading">
+          <p class="eyebrow">Por industria</p>
+          <h2>Soluciones ajustadas a cada tipo de negocio</h2>
+        </div>
+        <div class="industry-layout">
+          <div class="industry-tabs" role="tablist" aria-label="Industrias">
+            <button class="active" type="button" data-industry="restaurantes">Restaurantes</button>
+            <button type="button" data-industry="fruver">Fruver</button>
+            <button type="button" data-industry="tiendas">Tiendas</button>
+            <button type="button" data-industry="transporte">Transporte</button>
+            <button type="button" data-industry="constructoras">Constructoras</button>
+            <button type="button" data-industry="clinicas">Clínicas</button>
+          </div>
+          <article class="industry-panel" id="industryPanel">
+            <div class="industry-visual" id="industryVisual"></div>
+            <div>
+              <span class="pill">Restaurantes</span>
+              <h3 id="industryTitle">Promociones, menús y campañas con IA</h3>
+              <p id="industryDescription">Genera ofertas visuales, automatiza WhatsApp y convierte clientes recurrentes.</p>
+              <ul id="industryBenefits">
+                <li>Flyers para combos diarios</li>
+                <li>Campañas para fechas especiales</li>
+                <li>Captura de pedidos y leads</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="clientes" class="section clients-section">
+        <div class="section-heading">
+          <p class="eyebrow">Nuestros Clientes</p>
+          <h2>Primeras experiencias digitales reales del ecosistema Promos Bogota</h2>
+        </div>
+        <div class="client-grid" id="clientCards"></div>
+      </section>
+
+      <section class="before-after-section">
+        <div class="section-heading compact">
+          <p class="eyebrow">Antes y después</p>
+          <h2>Del esfuerzo manual a un sistema que vende todos los días</h2>
+        </div>
+        <div class="before-after-grid">
+          <article class="before-card">
+            <span>Antes</span>
+            <strong>Publicaciones manuales</strong>
+            <p>Procesos lentos, poco alcance y campañas sin medición clara.</p>
+          </article>
+          <article class="after-card">
+            <span>Después</span>
+            <strong>IA + automatización</strong>
+            <p>Contenido inmediato, seguimiento comercial y más clientes por WhatsApp.</p>
           </article>
         </div>
       </section>
@@ -101,49 +197,52 @@
       <section id="servicios" class="services-section">
         <div class="section-heading">
           <p class="eyebrow">Servicios Promos Bogotá</p>
-          <h2>Servicios digitales para vender, operar y automatizar mejor</h2>
+          <h2>Marketing, IA, automatización y sistemas para crecer</h2>
         </div>
         <div class="service-grid">
-          <article><strong>Diseño gráfico</strong><span>Identidad visual, piezas comerciales, menús, flyers y material publicitario.</span></article>
-          <article><strong>Manejo de redes sociales</strong><span>Contenido, parrillas, publicaciones, pauta y seguimiento comercial.</span></article>
-          <article><strong>Desarrollo web</strong><span>Landing pages, portales corporativos, dashboards y sitios para negocios.</span></article>
-          <article><strong>Inteligencia artificial</strong><span>Automatización de contenido, asistentes, analítica y generadores comerciales.</span></article>
-          <article><strong>Automatización</strong><span>Flujos con formularios, CRM, WhatsApp, reportes y operaciones internas.</span></article>
-          <article><strong>GIS</strong><span>Mapas, geocercas, monitoreo, trazabilidad, dashboards y análisis territorial.</span></article>
+          <article><strong>Diseño gráfico</strong><span>Identidad visual, menús, flyers y piezas comerciales.</span></article>
+          <article><strong>Redes sociales</strong><span>Contenido, pauta, parrillas y seguimiento comercial.</span></article>
+          <article><strong>Desarrollo web</strong><span>Landing pages, portales, dashboards y herramientas internas.</span></article>
+          <article><strong>Inteligencia artificial</strong><span>Asistentes, generadores comerciales y analítica.</span></article>
+          <article><strong>Automatización</strong><span>WhatsApp, CRM, formularios, reportes y procesos.</span></article>
+          <article><strong>GIS / PESV</strong><span>Mapas, geocercas, monitoreo y trazabilidad operacional.</span></article>
         </div>
+        <a class="button primary service-cta" href="https://wa.me/573127894040?text=Hola,%20quiero%20conocer%20los%20servicios%20de%20Promos%20Bogota" target="_blank" rel="noopener">Hablar con Promos Bogotá</a>
       </section>
 
-      <section class="compare-section">
+      <section class="testimonials-section">
         <div class="section-heading compact">
-          <p class="eyebrow">Arquitectura estable</p>
-          <h2>Tres productos conectados sin mezclar dependencias</h2>
+          <p class="eyebrow">Resultados</p>
+          <h2>Clientes que venden y operan mejor</h2>
         </div>
-        <div class="compare-grid">
-          <div class="compare-item">
-            <span>Portal principal</span>
-            <strong>Promos Bogotá</strong>
-            <p>Landing corporativa raíz con accesos comerciales claros y formulario de contacto.</p>
-          </div>
-          <div class="compare-item">
-            <span>Operación</span>
-            <strong>Plataforma GIS / PESV</strong>
-            <p>Monitoreo, flota, geocercas, preoperacionales, reportes y control de seguridad vial.</p>
-          </div>
-          <div class="compare-item">
-            <span>Crecimiento</span>
-            <strong>Marketing IA</strong>
-            <p>Promociones, leads, automatización, contenido e IA para restaurantes y negocios.</p>
-          </div>
+        <div class="testimonial-carousel" id="testimonialCarousel">
+          <article class="testimonial-card active">
+            <div class="avatar">LM</div>
+            <p>“Pasamos de publicar cuando podíamos a tener campañas listas cada semana.”</p>
+            <strong>Laura Méndez</strong><span>Gerente, Restaurante local</span><b>+42% consultas por WhatsApp</b>
+          </article>
+          <article class="testimonial-card">
+            <div class="avatar">CR</div>
+            <p>“El dashboard PESV nos ayudó a mostrar control real a clientes corporativos.”</p>
+            <strong>Carlos Rivas</strong><span>Operaciones, Transporte empresarial</span><b>18 vehículos monitoreados</b>
+          </article>
+          <article class="testimonial-card">
+            <div class="avatar">AP</div>
+            <p>“La automatización redujo tareas repetitivas y ordenó las solicitudes comerciales.”</p>
+            <strong>Ana Pérez</strong><span>Directora, Clínica privada</span><b>respuesta comercial más rápida</b>
+          </article>
         </div>
       </section>
 
-      <section id="contacto" class="contact-section">
+      <section id="contacto" class="final-cta-section">
         <div>
-          <p class="eyebrow">Contacto</p>
-          <h2>Solicita una demo o una propuesta comercial</h2>
-          <p>
-            Cuéntanos qué necesitas y el equipo Promos Bogotá te orientará hacia la plataforma o servicio correcto.
-          </p>
+          <p class="eyebrow">Listo para vender mejor</p>
+          <h2>Ya viste lo que podemos hacer.</h2>
+          <p>Ahora imagina lo que podemos hacer para tu empresa.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://wa.me/573127894040?text=Hola,%20quiero%20solicitar%20una%20propuesta%20para%20mi%20empresa" target="_blank" rel="noopener">🚀 Solicitar Propuesta</a>
+            <a class="button secondary" href="https://wa.me/573127894040" target="_blank" rel="noopener">📲 Hablar por WhatsApp</a>
+          </div>
         </div>
         <form class="lead-form" id="leadForm">
           <label>Nombre<input name="name" required placeholder="Tu nombre" /></label>
@@ -152,24 +251,26 @@
           <label>
             Solución de interés
             <select name="interest">
+              <option>Inteligencia Artificial</option>
+              <option>Marketing Digital</option>
               <option>Plataforma GIS / PESV</option>
-              <option>Marketing IA para Restaurantes</option>
-              <option>Servicios Promos Bogotá</option>
-              <option>Todo el ecosistema</option>
+              <option>Automatización y sistemas</option>
             </select>
           </label>
           <label class="full">Necesidad<textarea name="need" rows="4" placeholder="Describe tu proyecto"></textarea></label>
           <button class="button primary wide" type="submit">Enviar solicitud por WhatsApp</button>
-          <p class="form-note" id="formNote">El formulario prepara una conversación comercial por WhatsApp.</p>
+          <p class="form-note" id="formNote">Respuesta directa al +57 312 789 4040.</p>
         </form>
       </section>
     </main>
 
+    <a class="whatsapp-float" href="https://wa.me/573127894040?text=Hola,%20quiero%20una%20propuesta%20de%20Promos%20Bogota" target="_blank" rel="noopener" aria-label="Hablar por WhatsApp">WhatsApp</a>
+
     <footer class="site-footer">
       <strong>Promos Bogotá</strong>
-      <span>Portal corporativo para GIS, marketing IA, automatización y servicios digitales.</span>
+      <a href="https://wa.me/573127894040" target="_blank" rel="noopener">+57 312 789 4040</a>
     </footer>
 
-    <script src="/portal.js"></script>
+    <script src="/portal.js" defer></script>
   </body>
 </html>

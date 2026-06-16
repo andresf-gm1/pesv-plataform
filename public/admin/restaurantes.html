@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Restaurantes | Promos Bogota</title>
+    <link rel="stylesheet" href="/admin/restaurantes.css">
+  </head>
+  <body>
+    <main class="admin-shell">
+      <section class="login-card" id="loginCard">
+        <span>Acceso restringido</span>
+        <h1>Admin restaurantes</h1>
+        <p>Gestiona menus, precios, imagenes y promociones del ecosistema Promos Bogota.</p>
+        <form id="loginForm">
+          <label>Usuario<input name="user" autocomplete="username" required></label>
+          <label>Contrasena<input name="password" type="password" autocomplete="current-password" required></label>
+          <button type="submit">Ingresar</button>
+          <small>Demo local: admin / Promos2026*</small>
+        </form>
+      </section>
+
+      <section class="admin-panel hidden" id="adminPanel">
+        <header>
+          <div>
+            <span>Promos Bogota</span>
+            <h1>Restaurantes inteligentes</h1>
+          </div>
+          <div class="actions">
+            <a href="/clientes/mistico-fast-food" target="_blank" rel="noopener">Ver menu</a>
+            <button id="exportMenu" type="button">Exportar JSON</button>
+            <button id="logoutAdmin" type="button">Salir</button>
+          </div>
+        </header>
+
+        <section class="grid">
+          <form id="categoryForm" class="panel">
+            <h2>Categorias</h2>
+            <input name="id" placeholder="id-categoria" required>
+            <input name="name" placeholder="Nombre" required>
+            <input name="icon" placeholder="Icono" value="🍔" required>
+            <button type="submit">Guardar categoria</button>
+            <div id="categoryList" class="list"></div>
+          </form>
+
+          <form id="productForm" class="panel">
+            <h2>Productos</h2>
+            <input name="id" placeholder="id-producto" required>
+            <select name="categoryId" id="productCategory"></select>
+            <input name="name" placeholder="Nombre" required>
+            <textarea name="description" rows="2" placeholder="Descripcion comercial"></textarea>
+            <textarea name="ingredients" rows="2" placeholder="Ingredientes"></textarea>
+            <input name="price" type="number" placeholder="Precio normal" required>
+            <input name="promoPrice" type="number" placeholder="Precio promocional">
+            <label class="file-field">Fotografia<input name="imageFile" type="file" accept="image/*"></label>
+            <input name="image" placeholder="URL imagen">
+            <label class="check"><input name="available" type="checkbox" checked> Disponible</label>
+            <button type="submit">Guardar producto</button>
+            <div id="productList" class="list"></div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>CRM de pedidos locales</h2>
+          <div id="crmList" class="crm-list"></div>
+        </section>
+      </section>
+    </main>
+    <script src="/admin/restaurantes.js" defer></script>
+  </body>
+</html>

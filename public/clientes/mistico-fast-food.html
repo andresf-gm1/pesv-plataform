@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Menú digital interactivo de Místico Fast Food desarrollado por Promos Bogotá.">
+    <title>Místico Fast Food | Menú Digital</title>
+    <link rel="stylesheet" href="/clientes/mistico-fast-food/restaurant.css">
+  </head>
+  <body class="restaurant-app" data-restaurant-id="mistico-fast-food">
+    <main class="phone-shell">
+      <header class="restaurant-hero">
+        <img id="restaurantCover" class="restaurant-cover" alt="Hamburguesas Místico Fast Food" loading="eager">
+        <div class="restaurant-hero-overlay"></div>
+        <div class="restaurant-brand">
+          <img id="restaurantLogo" alt="Logo Místico Fast Food">
+          <span>Menú digital interactivo</span>
+          <h1 id="restaurantName">Místico Fast Food</h1>
+          <p>Hamburguesas artesanales, sabores innovadores y pedidos listos por WhatsApp.</p>
+          <a class="yellow-btn" href="#menu">Iniciar pedido</a>
+        </div>
+      </header>
+
+      <section id="menu" class="menu-section">
+        <div class="category-scroll" id="categoryTabs"></div>
+        <div class="product-list" id="productList"></div>
+      </section>
+
+      <aside class="cart-panel" id="cartPanel">
+        <div class="cart-head">
+          <strong>Tu pedido</strong>
+          <button type="button" id="clearCart">Limpiar</button>
+        </div>
+        <div id="cartItems" class="cart-items"></div>
+        <label class="notes-field">
+          Observaciones
+          <textarea id="orderNotes" rows="2" placeholder="Sin cebolla, extra salsa, carne bien cocida..."></textarea>
+        </label>
+        <div class="cart-total"><span>Subtotal</span><strong id="subtotal">$0</strong></div>
+        <button class="yellow-btn wide" type="button" id="confirmCart">Confirmar pedido</button>
+      </aside>
+
+      <section class="assistant-panel hidden" id="assistantPanel">
+        <div class="assistant-card">
+          <span>Mesero virtual IA</span>
+          <h2>Hola, soy el asistente virtual de Místico Fast Food.</h2>
+          <p>Para terminar tu pedido necesito algunos datos.</p>
+          <form id="checkoutForm">
+            <label>Nombre<input name="customerName" required placeholder="Tu nombre"></label>
+            <label>Teléfono<input name="phone" required placeholder="300 000 0000"></label>
+            <label>
+              Tipo de pedido
+              <select name="orderType" id="orderType">
+                <option value="Comer en el restaurante">Comer en el restaurante</option>
+                <option value="Recoger">Recoger</option>
+                <option value="Domicilio">Domicilio</option>
+              </select>
+            </label>
+            <div id="deliveryFields" class="delivery-fields hidden">
+              <label>Direccion exacta<input name="address" placeholder="Calle, carrera, numero"></label>
+              <label>Barrio<input name="neighborhood" placeholder="Barrio"></label>
+              <label>Referencia<input name="reference" placeholder="Casa, porteria, local..."></label>
+              <label>Google Maps<input name="maps" placeholder="Link de ubicacion si lo tienes"></label>
+            </div>
+            <label>
+              Método de pago
+              <select name="paymentMethod" id="paymentMethod">
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Tarjeta">Tarjeta</option>
+              </select>
+            </label>
+            <label id="cashField">Paga con<input name="cashAmount" id="cashAmount" placeholder="$100.000"></label>
+            <div class="transfer-info hidden" id="transferInfo"></div>
+            <div class="checkout-summary" id="checkoutSummary"></div>
+            <button class="yellow-btn wide" type="submit">Enviar pedido por WhatsApp</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="qr-section">
+        <div>
+          <span>QR del restaurante</span>
+          <h2>Escanea y abre este menú</h2>
+          <p>Listo para mesas, volantes y empaques.</p>
+          <button class="dark-btn" id="downloadQr" type="button">Descargar QR</button>
+        </div>
+        <canvas id="qrCanvas" width="260" height="260" aria-label="QR Místico Fast Food"></canvas>
+      </section>
+
+      <footer class="powered-by">
+        <p>⚡ Tecnología desarrollada por Promos Bogotá.</p>
+        <strong>¿Tienes un negocio y quieres un menú inteligente con IA y automatización?</strong>
+        <a class="dark-btn" href="/">Conoce nuestras soluciones</a>
+      </footer>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
+    <script src="/clientes/mistico-fast-food/restaurant.js" defer></script>
+  </body>
+</html>

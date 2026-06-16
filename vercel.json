@@ -8,6 +8,8 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/pesv", "destination": "/pesv.html" },
+    { "source": "/clientes/mistico-fast-food", "destination": "/clientes/mistico-fast-food.html" },
+    { "source": "/admin/restaurantes", "destination": "/admin/restaurantes.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/dashboard", "destination": "/monitor.html" },
     { "source": "/monitor", "destination": "/monitor.html" },

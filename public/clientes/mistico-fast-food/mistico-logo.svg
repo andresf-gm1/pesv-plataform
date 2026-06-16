@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720" viewBox="0 0 720 720" role="img" aria-labelledby="title desc">
+  <title id="title">Mistico Fast Food</title>
+  <desc id="desc">Logo temporal en amarillo, negro y blanco para Mistico Fast Food.</desc>
+  <rect width="720" height="720" rx="156" fill="#050505"/>
+  <circle cx="360" cy="360" r="270" fill="#ffd000"/>
+  <circle cx="360" cy="360" r="226" fill="#050505"/>
+  <path d="M190 330c28-76 94-126 170-126s142 50 170 126H190Z" fill="#ffd000"/>
+  <path d="M178 374h364c0 54-44 98-98 98H276c-54 0-98-44-98-98Z" fill="#ffd000"/>
+  <path d="M230 346h260" stroke="#fff" stroke-width="18" stroke-linecap="round" stroke-dasharray="28 32"/>
+  <text x="360" y="570" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="62" font-weight="900" fill="#ffffff">MISTICO</text>
+  <text x="360" y="626" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="6" fill="#ffd000">FAST FOOD</text>
+</svg>

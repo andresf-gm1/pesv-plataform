@@ -1,0 +1,162 @@
+{
+  "restaurants": [
+    {
+      "id": "mistico-fast-food",
+      "name": "MISTICO FAST FOOD",
+      "displayName": "Místico Fast Food",
+      "type": "Restaurante de comida rápida artesanal.",
+      "shortDescription": "Una experiencia gastronómica única con hamburguesas artesanales, sabores innovadores y el auténtico toque Místico.",
+      "logo": "/clientes/mistico-fast-food/logo.jpg",
+      "cover": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1400&q=80",
+      "whatsapp": "573222617439",
+      "address": "Carrera 8 #163-20, San Cristóbal Norte, Bogotá, Colombia",
+      "phone": "+57 322 261 7439",
+      "hours": "Lunes a jueves 3:00 PM - 11:00 PM. Viernes a domingo y festivos 2:00 PM - 11:00 PM.",
+      "brand": {
+        "primary": "#ffc72c",
+        "secondary": "#050505",
+        "contrast": "#ffffff"
+      },
+      "services": [
+        "Menú digital interactivo",
+        "Diseño web profesional",
+        "Experiencia móvil optimizada",
+        "Preparado para pedidos inteligentes y automatización con IA"
+      ],
+      "payment": {
+        "bank": "Nequi / Daviplata / Bancolombia",
+        "holder": "Místico Fast Food",
+        "account": "Nequi y Daviplata: 322 261 7439. Bancolombia Ahorros #123-456789-01",
+        "qr": ""
+      },
+      "deliveryFee": 5000,
+      "categories": [
+        { "id": "hamburguesas", "name": "Hamburguesas", "icon": "🍔" },
+        { "id": "sandwiches", "name": "Sándwiches", "icon": "🥪" },
+        { "id": "costillas", "name": "Costillas", "icon": "🔥" },
+        { "id": "alitas", "name": "Alitas", "icon": "🍗" },
+        { "id": "salchipapas", "name": "Salchipapas", "icon": "🍟" },
+        { "id": "otros", "name": "Perros y más", "icon": "🌭" },
+        { "id": "bebidas", "name": "Bebidas", "icon": "🥤" }
+      ],
+      "addons": [
+        { "id": "papas", "name": "Papas francesas", "icon": "🍟", "price": 6000 },
+        { "id": "gaseosa", "name": "Gaseosa personal", "icon": "🥤", "price": 2700 },
+        { "id": "nuggets", "name": "Nuggets", "icon": "🍗", "price": 9000 },
+        { "id": "tocineta", "name": "Tocineta crujiente", "icon": "🥓", "price": 4000 }
+      ],
+      "products": [
+        {
+          "id": "hamburguesa-sencilla",
+          "categoryId": "hamburguesas",
+          "name": "Hamburguesa Sencilla",
+          "description": "El clásico artesanal perfecto para los que buscan el sabor original y equilibrado.",
+          "ingredients": "Pan, carne artesanal, queso mozzarella, lechuga, tomate, cebolla caramelizada y papas chips.",
+          "price": 14000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "hamburguesa-mistica",
+          "categoryId": "hamburguesas",
+          "name": "Hamburguesa Mística",
+          "description": "Una experiencia crujiente con chunchullo crocante o papas dentro de la hamburguesa y vegetales al gusto.",
+          "ingredients": "Pan, carne artesanal, chunchullo crocante o papas, vegetales al gusto y salsa de la casa.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "hamburguesa-criolla",
+          "categoryId": "hamburguesas",
+          "name": "Hamburguesa Criolla",
+          "description": "Sabor colombiano con chicharrón crujiente, plátano frito y guacamole artesanal.",
+          "ingredients": "Carne artesanal, chicharrón de callo, plátano frito, guacamole, pico de gallo y salsa de la casa.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "sandwich-mistico",
+          "categoryId": "sandwiches",
+          "name": "Sándwich Místico",
+          "description": "Pan artesanal crujiente con chunchullo en reducción de ron y panela, manzana verde, tocineta y papas.",
+          "ingredients": "Pan artesanal, chunchullo crocante, lechuga, tomate, queso mozzarella, manzana verde y tocineta.",
+          "price": 23000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1521390188846-e2a3a97453a0?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "costillas-bbq",
+          "categoryId": "costillas",
+          "name": "Costillas BBQ Premium",
+          "description": "Costilla de cerdo tierna bañada en BBQ artesanal con pimientos y chile dulce picante.",
+          "ingredients": "250g de costilla de cerdo, salsa BBQ de la casa y acompañamiento a elección.",
+          "price": 26000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "combo-alitas-x10",
+          "categoryId": "alitas",
+          "name": "Combo Alitas X10",
+          "description": "Diez alitas jugosas en salsa chile dulce, tamarindo o BBQ con papas, cascos o aros.",
+          "ingredients": "10 alitas, salsa a elección y acompañamiento.",
+          "price": 30000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "salchipapa-familiar",
+          "categoryId": "salchipapas",
+          "name": "Salchipapa Familiar Mística",
+          "description": "Papa crujiente con costilla, pollo, carne desmechada, maíz, salchichas, plátano, queso y papas chips.",
+          "ingredients": "Papa, costilla, pollo, carne desmechada, maíz, salchichas, plátano maduro, queso y pico de gallo.",
+          "price": 50000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1623653387945-2fd25214f8fc?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "perro-sencillo",
+          "categoryId": "otros",
+          "name": "Perro Sencillo",
+          "description": "Perro caliente con salchicha americana, pan artesanal, queso mozzarella gratinado y papas chips.",
+          "ingredients": "Pan artesanal, salchicha americana, queso mozzarella, papas chips y salsas de la casa.",
+          "price": 10000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1627059318424-5890d4860179?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "limonada-coco",
+          "categoryId": "bebidas",
+          "name": "Limonada de Coco",
+          "description": "Limonada insignia de la casa con textura cremosa y hielo frappé.",
+          "ingredients": "Crema de coco, limón fresco, leche condensada y hielo.",
+          "price": 8000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1546173159-3159ab4d069a?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "gaseosa",
+          "categoryId": "bebidas",
+          "name": "Gaseosa 250ml",
+          "description": "Gaseosa personal fría para acompañar tu pedido.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 2700,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=900&q=80"
+        }
+      ]
+    }
+  ]
+}
