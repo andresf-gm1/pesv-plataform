@@ -236,6 +236,7 @@ h3 {
 }
 
 .hero-proof {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
@@ -1279,6 +1280,80 @@ h1 {
   }
 }
 
+@media (max-width: 620px) {
+  .site-header {
+    padding: 12px 16px;
+  }
+
+  .hero {
+    padding-top: 82px;
+  }
+
+  .hero-content {
+    gap: 18px;
+  }
+
+  .hero-copy-block {
+    gap: 12px;
+  }
+
+  .hero-copy-block::before,
+  .eyebrow {
+    display: none;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 11vw, 3.15rem);
+  }
+
+  .hero-copy {
+    font-size: 1rem;
+  }
+
+  .hero-actions {
+    gap: 10px;
+  }
+
+  .hero-proof {
+    order: 3;
+    gap: 10px;
+    margin-top: 0;
+  }
+
+  .hero-showcase {
+    gap: 12px;
+  }
+
+  .ai-demo-card {
+    padding: 16px;
+  }
+
+  .ai-demo-card textarea {
+    min-height: 76px;
+  }
+
+  .flyer-preview {
+    min-height: 132px;
+    padding: 16px;
+  }
+
+  .hero-mockup {
+    display: none;
+  }
+
+  .client-card {
+    grid-template-columns: 1fr;
+  }
+
+  .client-logo-wrap {
+    min-height: 170px;
+  }
+
+  .client-actions .button {
+    width: 100%;
+  }
+}
+
 /* Restaurant client cards */
 .clients-section {
   background:
@@ -1306,6 +1381,10 @@ h1 {
   backdrop-filter: blur(20px);
 }
 
+.client-card.loading-card {
+  grid-template-columns: 1fr;
+}
+
 .client-logo-wrap {
   display: grid;
   min-height: 220px;
@@ -1324,12 +1403,106 @@ h1 {
   filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.46));
 }
 
+.sophia-client-card {
+  border-color: rgba(229, 193, 88, 0.38);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(229, 193, 88, 0.18), transparent 18rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)),
+    rgba(10, 10, 12, 0.86);
+}
+
+.sophia-client-visual {
+  border-color: rgba(229, 193, 88, 0.48);
+  background:
+    radial-gradient(circle at 70% 18%, rgba(229, 193, 88, 0.22), transparent 8rem),
+    linear-gradient(145deg, #0b0c10, #1a1510 55%, #0b0c10);
+}
+
+.sophia-client-visual span {
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+  border: 1px solid rgba(229, 193, 88, 0.42);
+  border-radius: 50%;
+  color: #e5c158;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  box-shadow: 0 0 70px rgba(229, 193, 88, 0.14);
+}
+
+.growthhub-client-card {
+  border-color: rgba(56, 217, 150, 0.38);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(56, 217, 150, 0.16), transparent 18rem),
+    radial-gradient(circle at 84% 24%, rgba(88, 166, 255, 0.14), transparent 18rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)),
+    rgba(10, 10, 12, 0.86);
+}
+
+.growthhub-client-visual {
+  border-color: rgba(56, 217, 150, 0.44);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 70% 18%, rgba(88, 166, 255, 0.24), transparent 8rem),
+    linear-gradient(145deg, #071014, #0d1b2a 56%, #071014);
+  background-size: 28px 28px, 28px 28px, auto, auto;
+}
+
+.growthhub-client-visual span {
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+  border: 1px solid rgba(56, 217, 150, 0.46);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(56, 217, 150, 0.16), rgba(88, 166, 255, 0.14));
+  color: #a7f3d0;
+  font-size: 2rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  box-shadow: 0 0 70px rgba(56, 217, 150, 0.12);
+}
+
 .client-card ul {
   display: grid;
   gap: 8px;
   padding: 0;
   list-style: none;
   color: rgba(255, 255, 255, 0.82);
+}
+
+.client-menu-preview {
+  margin: 16px 0;
+}
+
+.client-menu-preview li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.client-menu-preview span {
+  color: var(--muted);
+}
+
+.client-menu-preview strong {
+  color: var(--yellow);
+  white-space: nowrap;
+}
+
+.client-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .client-card .button {

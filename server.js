@@ -73,6 +73,8 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 const pageRoutes = {
     "/pesv": "pesv.html",
     "/clientes/mistico-fast-food": "clientes/mistico-fast-food.html",
+    "/clientes/sophia-gonzalez": "clientes/sophia-gonzalez.html",
+    "/clientes/growthhub-rewards": "clientes/growthhub-rewards.html",
     "/admin/restaurantes": "admin/restaurantes.html",
     "/login": "login.html",
     "/dashboard": "monitor.html",
@@ -90,6 +92,45 @@ const pageRoutes = {
 
 Object.entries(pageRoutes).forEach(([route, fileName]) => {
     app.get(route, (req, res) => res.sendFile(path.join(__dirname, "public", fileName)));
+});
+
+const restaurantsDataPath = path.join(__dirname, "public", "data", "restaurants.json");
+
+async function readRestaurantsData() {
+    const raw = await fsPromises.readFile(restaurantsDataPath, "utf8");
+    return JSON.parse(raw);
+}
+
+app.get("/api/restaurants/:id", async (req, res) => {
+    try {
+        const data = await readRestaurantsData();
+        const restaurant = data.restaurants.find((item) => item.id === req.params.id);
+        if (!restaurant) return res.status(404).json({ ok: false, error: "Restaurante no encontrado." });
+        res.json({ ok: true, restaurant });
+    } catch (error) {
+        console.error("Error leyendo restaurante:", error);
+        res.status(500).json({ ok: false, error: "No se pudo leer el restaurante." });
+    }
+});
+
+app.put("/api/restaurants/:id", async (req, res) => {
+    try {
+        const data = await readRestaurantsData();
+        const index = data.restaurants.findIndex((item) => item.id === req.params.id);
+        if (index === -1) return res.status(404).json({ ok: false, error: "Restaurante no encontrado." });
+
+        const restaurant = {
+            ...data.restaurants[index],
+            ...req.body,
+            id: req.params.id
+        };
+        data.restaurants[index] = restaurant;
+        await fsPromises.writeFile(restaurantsDataPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+        res.json({ ok: true, restaurant });
+    } catch (error) {
+        console.error("Error guardando restaurante:", error);
+        res.status(500).json({ ok: false, error: "No se pudo guardar el restaurante." });
+    }
 });
 
 app.use(express.static(path.join(__dirname, "public")));

@@ -180,6 +180,11 @@ a { color: inherit; text-decoration: none; }
   font-size: .88rem;
   line-height: 1.42;
 }
+.price-row button:disabled {
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, .14);
+  color: rgba(255, 255, 255, .62);
+}
 .price-row {
   display: flex;
   align-items: center;

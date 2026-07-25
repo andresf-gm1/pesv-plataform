@@ -6,170 +6,286 @@ const PORTAL_CONFIG = {
 
 const industries = {
   restaurantes: {
-    label: "Restaurantes",
-    title: "Promociones, menús y campañas con IA",
+    title: "Promociones, menus y campanas con IA",
     description: "Genera ofertas visuales, automatiza WhatsApp y convierte clientes recurrentes.",
-    benefits: ["Flyers para combos diarios", "Campañas para fechas especiales", "Captura de pedidos y leads"]
+    benefits: ["Flyers para combos diarios", "Campanas por temporada", "Captura de pedidos y leads"]
   },
   fruver: {
-    label: "Fruver",
-    title: "Ofertas frescas con rotación rápida",
-    description: "Publica promociones por temporada, mueve inventario y activa clientes por WhatsApp.",
-    benefits: ["Promos por kilo o combo", "Piezas para estados y grupos", "Lista de difusión comercial"]
+    title: "Ofertas frescas listas para publicar",
+    description: "Convierte inventario diario en piezas promocionales rapidas para redes y WhatsApp.",
+    benefits: ["Combos por categoria", "Promos de alta rotacion", "Mensajes para clientes frecuentes"]
   },
   tiendas: {
-    label: "Tiendas",
-    title: "Más ventas para negocios de barrio",
-    description: "Crea piezas para domicilios, combos, productos nuevos y campañas locales.",
-    benefits: ["Catálogo visual simple", "Promociones semanales", "Mensajes listos para clientes"]
+    title: "Ventas locales con contenido constante",
+    description: "Crea anuncios para productos, temporadas y descuentos sin depender de diseno manual.",
+    benefits: ["Piezas para redes", "Promos relampago", "Catalogos simples para WhatsApp"]
   },
   transporte: {
-    label: "Transporte",
-    title: "Operación, seguridad y clientes corporativos",
-    description: "Combina GIS/PESV, dashboards y comunicación comercial para vender confianza.",
-    benefits: ["Dashboard operativo", "Evidencia PESV", "Presentaciones para clientes"]
+    title: "Gestion operacional y seguridad vial",
+    description: "Integra monitoreo, indicadores, reportes PESV y control visual de flotas.",
+    benefits: ["Dashboards por flota", "Alertas operativas", "Reportes para gerencia"]
   },
   constructoras: {
-    label: "Constructoras",
-    title: "Automatización para equipos y proyectos",
-    description: "Organiza solicitudes, reportes, campañas y tableros para decisiones rápidas.",
-    benefits: ["Reportes ejecutivos", "Seguimiento comercial", "Automatización documental"]
+    title: "Seguimiento de equipos, personal y obras",
+    description: "Centraliza evidencias, rutas, mantenimientos y control documental por proyecto.",
+    benefits: ["Control de activos", "Evidencias de campo", "Indicadores por frente de obra"]
   },
   clinicas: {
-    label: "Clínicas",
-    title: "Comunicación clara para servicios de salud",
-    description: "Impulsa campañas, agenda solicitudes y presenta indicadores de atención.",
-    benefits: ["Campañas por servicio", "WhatsApp de atención", "Dashboard gerencial"]
+    title: "Procesos digitales para atencion y demanda",
+    description: "Automatiza campanas, agenda comercial y comunicacion con pacientes.",
+    benefits: ["Campanas por servicio", "Seguimiento de interesados", "Mensajes personalizados"]
   }
 };
 
-const marketingLink = document.getElementById("marketingLink");
-const gisLink = document.getElementById("gisLink");
+const testimonials = document.querySelectorAll(".testimonial-card");
+let testimonialIndex = 0;
 
-if (marketingLink) marketingLink.href = PORTAL_CONFIG.marketingUrl;
-if (gisLink) gisLink.href = PORTAL_CONFIG.pesvUrl;
+function buildWhatsAppUrl(message) {
+  return `https://wa.me/${PORTAL_CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0
+  }).format(Number(value || 0));
+}
+
+function buildSophiaClientCard() {
+  return `
+    <article class="client-card sophia-client-card">
+      <div class="client-logo-wrap sophia-client-visual">
+        <span>SGM</span>
+      </div>
+      <div>
+        <span class="pill">Servicio premium activo</span>
+        <h3>Sophia González Martínez</h3>
+        <p>Micrositio editorial para fotografía de autor, retrato ejecutivo, gastronomía y producto comercial premium.</p>
+        <ul class="client-menu-preview">
+          <li><span>Retrato Ejecutivo & Marca Personal</span><strong>Activo</strong></li>
+          <li><span>Fotografía Gastronómica & Culinaria</span><strong>Activo</strong></li>
+          <li><span>Producto & E-Commerce Premium</span><strong>Activo</strong></li>
+        </ul>
+        <div class="client-actions">
+          <a class="button primary" href="/clientes/sophia-gonzalez">Ver sitio</a>
+          <a class="button secondary" href="https://wa.me/573108048754?text=Hola%20Sophia,%20me%20interesa%20agendar%20una%20sesi%C3%B3n%20profesional." target="_blank" rel="noopener">Contactar</a>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function buildGrowthHubClientCard() {
+  return `
+    <article class="client-card growthhub-client-card">
+      <div class="client-logo-wrap growthhub-client-visual">
+        <span>GH</span>
+      </div>
+      <div>
+        <span class="pill">SaaS premium realizado por nosotros</span>
+        <h3>GrowthHub Rewards</h3>
+        <p>Marketplace premium para crecimiento en redes con wallet, recompensas, afiliados, revendedores, promociones configurables e inteligencia artificial.</p>
+        <ul class="client-menu-preview">
+          <li><span>Billetera virtual y recargas</span><strong>Incluido</strong></li>
+          <li><span>Promociones, VIP y cashback</span><strong>Incluido</strong></li>
+          <li><span>Panel admin y proveedor oculto</span><strong>Incluido</strong></li>
+        </ul>
+        <div class="client-actions">
+          <a class="button primary" href="/clientes/growthhub-rewards">Ver sitio</a>
+          <a class="button secondary" href="https://wa.me/573127894040?text=Hola,%20quiero%20desarrollar%20una%20plataforma%20SaaS%20premium%20como%20GrowthHub%20Rewards." target="_blank" rel="noopener">Contactar</a>
+        </div>
+      </div>
+    </article>
+  `;
+}
 
 async function renderClients() {
   const target = document.getElementById("clientCards");
   if (!target) return;
+
+  target.innerHTML = '<article class="client-card loading-card"><div><span class="pill">Cargando</span><h3>Conectando clientes</h3><p>Estamos leyendo la informacion de restaurantes.</p></div></article>';
+
   try {
-    const response = await fetch("/data/restaurants.json");
+    const response = await fetch("/data/restaurants.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`restaurants.json ${response.status}`);
+
     const data = await response.json();
-    target.innerHTML = data.restaurants.map((client) => `
-      <article class="client-card">
-        <div class="client-logo-wrap"><img src="${client.logo}" alt="Logo ${client.displayName}" loading="lazy"></div>
-        <div>
-          <span class="pill">🍔 ${client.displayName}</span>
-          <h3>${client.displayName}</h3>
-          <p>${client.type}</p>
-          <p>${client.shortDescription || ""}</p>
-          <ul>${client.services.map((service) => `<li>✔ ${service}</li>`).join("")}</ul>
-          <a class="button primary" href="/clientes/${client.id}">Ver experiencia Místico</a>
-        </div>
-      </article>
-    `).join("");
+    const restaurants = Array.isArray(data.restaurants) ? data.restaurants : [];
+
+    if (!restaurants.length) {
+      target.innerHTML = `${buildGrowthHubClientCard()}${buildSophiaClientCard()}`;
+      return;
+    }
+
+    const restaurantCards = restaurants.map((client) => {
+      const availableProducts = (client.products || []).filter((product) => product.available !== false);
+      const firstPrices = availableProducts
+        .slice(0, 3)
+        .map((product) => `<li><span>${product.name}</span><strong>${product.price ? formatCurrency(product.price) : (product.priceNote || "Consultar")}</strong></li>`)
+        .join("");
+
+      return `
+        <article class="client-card">
+          <div class="client-logo-wrap">
+            <img src="${client.logo}" alt="Logo ${client.displayName}" loading="lazy">
+          </div>
+          <div>
+            <span class="pill">Restaurante activo</span>
+            <h3>${client.displayName}</h3>
+            <p>${client.shortDescription || client.type || ""}</p>
+            <ul class="client-menu-preview">${firstPrices}</ul>
+            <div class="client-actions">
+              <a class="button primary" href="/clientes/${client.id}">Ver menu</a>
+              <a class="button secondary" href="/admin/restaurantes">Editar menu</a>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    target.innerHTML = `${buildGrowthHubClientCard()}${buildSophiaClientCard()}${restaurantCards}`;
   } catch (error) {
-    target.innerHTML = "<p>No se pudieron cargar los clientes.</p>";
+    target.innerHTML = `${buildGrowthHubClientCard()}${buildSophiaClientCard()}`;
   }
 }
 
 function animateCounters() {
-  document.querySelectorAll("[data-count]").forEach((node) => {
-    const target = Number(node.dataset.count || 0);
-    const duration = 1200;
+  const counters = document.querySelectorAll("[data-count]");
+
+  counters.forEach((counter) => {
+    const target = Number(counter.dataset.count || "0");
+    const suffix = counter.dataset.suffix || "";
+    const duration = 1100;
     const start = performance.now();
-    const formatter = new Intl.NumberFormat("es-CO");
-    const tick = (now) => {
+
+    function tick(now) {
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      node.textContent = formatter.format(Math.round(target * eased));
-      if (progress < 1) requestAnimationFrame(tick);
-    };
+      counter.textContent = `${Math.round(target * eased)}${suffix}`;
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      }
+    }
+
     requestAnimationFrame(tick);
   });
 }
 
-function updateFlyerPreview() {
+function generateFlyer() {
   const input = document.getElementById("promoPrompt");
   const preview = document.getElementById("flyerPreview");
-  if (!input || !preview) return;
+  const value = input?.value.trim() || "3 hamburguesas con papas y gaseosa por $30.000";
+  const price = value.match(/\$[\d.,]+/)?.[0] || "Oferta especial";
+  const title = value.replace(/\s+por\s+\$[\d.,]+/i, "").slice(0, 78);
 
-  const text = input.value.trim() || "3 hamburguesas con papas y gaseosa por $30.000";
-  const price = text.match(/\$ ?[\d.,]+/)?.[0] || "Precio especial";
-  const title = text.replace(price, "").replace(/\s+por\s*$/i, "").trim() || "Promoción destacada";
+  if (!preview) return;
 
-  preview.classList.remove("generated");
-  void preview.offsetWidth;
-  preview.classList.add("generated");
   preview.innerHTML = `
-    <span class="flyer-kicker">FLYER IA LISTO</span>
+    <span class="flyer-kicker">PROMO IA</span>
     <strong>${title}</strong>
     <p>${price}</p>
-    <small>Copy, diseño y CTA preparados para redes y WhatsApp.</small>
+    <small>Arte listo para redes, WhatsApp y campanas locales.</small>
   `;
+  preview.classList.add("generated");
 }
 
 function selectIndustry(key) {
-  const data = industries[key] || industries.restaurantes;
-  const panel = document.getElementById("industryPanel");
+  const industry = industries[key] || industries.restaurantes;
   const visual = document.getElementById("industryVisual");
-  const pill = panel?.querySelector(".pill");
   const title = document.getElementById("industryTitle");
   const description = document.getElementById("industryDescription");
   const benefits = document.getElementById("industryBenefits");
 
-  document.querySelectorAll("[data-industry]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.industry === key);
+  document.querySelectorAll(".industry-tabs [data-industry]").forEach((tab) => {
+    const selected = tab.dataset.industry === key;
+    tab.classList.toggle("active", selected);
+    tab.setAttribute("aria-selected", selected ? "true" : "false");
   });
 
-  if (visual) visual.dataset.industry = key;
-  if (pill) pill.textContent = data.label;
-  if (title) title.textContent = data.title;
-  if (description) description.textContent = data.description;
-  if (benefits) benefits.innerHTML = data.benefits.map((item) => `<li>${item}</li>`).join("");
-  panel?.classList.remove("swapped");
-  void panel?.offsetWidth;
-  panel?.classList.add("swapped");
+  if (visual) {
+    visual.dataset.industry = key;
+    visual.classList.remove("swapped");
+    window.requestAnimationFrame(() => visual.classList.add("swapped"));
+  }
+
+  if (title) title.textContent = industry.title;
+  if (description) description.textContent = industry.description;
+  if (benefits) {
+    benefits.innerHTML = industry.benefits.map((benefit) => `<li>${benefit}</li>`).join("");
+  }
 }
 
-function startTestimonialCarousel() {
-  const cards = [...document.querySelectorAll(".testimonial-card")];
-  if (cards.length < 2) return;
-  let index = cards.findIndex((card) => card.classList.contains("active"));
-  if (index < 0) index = 0;
-  setInterval(() => {
-    cards[index].classList.remove("active");
-    index = (index + 1) % cards.length;
-    cards[index].classList.add("active");
-  }, 4200);
+function rotateTestimonials() {
+  if (!testimonials.length) return;
+
+  testimonials.forEach((card, index) => {
+    card.classList.toggle("active", index === testimonialIndex);
+  });
+
+  testimonialIndex = (testimonialIndex + 1) % testimonials.length;
+}
+
+function wireLinks() {
+  document.querySelectorAll("[data-wa-message]").forEach((link) => {
+    link.setAttribute("href", buildWhatsAppUrl(link.dataset.waMessage || "Hola, quiero una propuesta."));
+    link.setAttribute("target", "_blank");
+    link.setAttribute("rel", "noopener");
+  });
+
+  document.querySelectorAll("[data-portal='pesv']").forEach((link) => {
+    link.setAttribute("href", PORTAL_CONFIG.pesvUrl);
+  });
+
+  document.querySelectorAll("[data-portal='marketing']").forEach((link) => {
+    link.setAttribute("href", PORTAL_CONFIG.marketingUrl);
+  });
+}
+
+function wireLeadForm() {
+  const form = document.getElementById("leadForm");
+  const note = document.getElementById("formNote");
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const name = formData.get("name") || "Cliente";
+    const company = formData.get("company") || "mi empresa";
+    const phone = formData.get("phone") || "";
+    const interest = formData.get("interest") || "Promos Bogota";
+    const need = formData.get("need") || "Quiero mejorar ventas y automatizar procesos.";
+    const message = [
+      `Hola, soy ${name}.`,
+      `Empresa: ${company}.`,
+      `WhatsApp: ${phone}.`,
+      `Interes: ${interest}.`,
+      `Necesidad: ${need}`
+    ].join("\n");
+
+    if (note) {
+      note.textContent = "Solicitud preparada. Se abrira WhatsApp para continuar.";
+    }
+
+    window.open(buildWhatsAppUrl(message), "_blank", "noopener");
+    form.reset();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  wireLinks();
+  wireLeadForm();
   animateCounters();
-  renderClients();
-  startTestimonialCarousel();
-  selectIndustry("restaurantes");
-  document.getElementById("generateFlyer")?.addEventListener("click", updateFlyerPreview);
-  document.querySelectorAll("[data-industry]").forEach((button) => {
-    button.addEventListener("click", () => selectIndustry(button.dataset.industry));
+  generateFlyer();
+  rotateTestimonials();
+  setInterval(rotateTestimonials, 4200);
+
+  document.getElementById("generateFlyer")?.addEventListener("click", generateFlyer);
+
+  document.querySelectorAll(".industry-tabs [data-industry]").forEach((tab) => {
+    tab.addEventListener("click", () => selectIndustry(tab.dataset.industry));
   });
-});
 
-document.getElementById("leadForm")?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const data = new FormData(event.currentTarget);
-  const message = [
-    "Hola, quiero información sobre Promos Bogotá.",
-    `Nombre: ${data.get("name") || ""}`,
-    `Empresa: ${data.get("company") || ""}`,
-    `WhatsApp: ${data.get("phone") || ""}`,
-    `Interés: ${data.get("interest") || ""}`,
-    `Necesidad: ${data.get("need") || ""}`
-  ].join("\n");
-
-  const whatsappUrl = `https://wa.me/${PORTAL_CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
-  const note = document.getElementById("formNote");
-  if (note) note.textContent = "Solicitud preparada. Se abrirá WhatsApp para continuar.";
-  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  event.currentTarget.reset();
+  renderClients();
+  selectIndustry("restaurantes");
 });

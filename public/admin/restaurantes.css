@@ -97,6 +97,28 @@ header {
   padding: 20px;
   margin-bottom: 18px;
 }
+.save-status {
+  min-height: 24px;
+  margin: 0 0 16px;
+  color: #bbf7d0;
+  font-weight: 800;
+}
+.save-status.error {
+  color: #fecaca;
+}
+.product-admin-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.product-admin-row img {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(255,255,255,.12);
+}
 .check {
   display: flex;
   align-items: center;

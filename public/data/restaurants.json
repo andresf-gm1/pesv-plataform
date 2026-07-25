@@ -7,7 +7,10 @@
       "type": "Restaurante de comida rápida artesanal.",
       "shortDescription": "Una experiencia gastronómica única con hamburguesas artesanales, sabores innovadores y el auténtico toque Místico.",
       "logo": "/clientes/mistico-fast-food/logo.jpg",
-      "cover": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1400&q=80",
+      "cover": "/clientes/mistico-fast-food/menu/baicon.jpeg",
+      "referenceImage": "/clientes/mistico-fast-food/logo.jpg",
+      "referenceTitle": "Carta de referencia Mistico Fast Food",
+      "referenceSummary": "Menu completo por categorias, listo para actualizar productos, precios e imagenes desde este archivo.",
       "whatsapp": "573222617439",
       "address": "Carrera 8 #163-20, San Cristóbal Norte, Bogotá, Colombia",
       "phone": "+57 322 261 7439",
@@ -31,49 +34,273 @@
       },
       "deliveryFee": 5000,
       "categories": [
-        { "id": "hamburguesas", "name": "Hamburguesas", "icon": "🍔" },
-        { "id": "sandwiches", "name": "Sándwiches", "icon": "🥪" },
-        { "id": "costillas", "name": "Costillas", "icon": "🔥" },
-        { "id": "alitas", "name": "Alitas", "icon": "🍗" },
-        { "id": "salchipapas", "name": "Salchipapas", "icon": "🍟" },
-        { "id": "otros", "name": "Perros y más", "icon": "🌭" },
-        { "id": "bebidas", "name": "Bebidas", "icon": "🥤" }
+        {
+          "id": "hamburguesas",
+          "name": "Hamburguesas",
+          "icon": "🍔"
+        },
+        {
+          "id": "sandwiches",
+          "name": "Sándwich",
+          "icon": "🥪"
+        },
+        {
+          "id": "costillas",
+          "name": "Costillas",
+          "icon": "🍖"
+        },
+        {
+          "id": "platos-mixtos",
+          "name": "Plato mixto",
+          "icon": "🍽️"
+        },
+        {
+          "id": "salchipapas",
+          "name": "Salchipapas",
+          "icon": "🌭"
+        },
+        {
+          "id": "alitas",
+          "name": "Alitas",
+          "icon": "🍗"
+        },
+        {
+          "id": "mazorcadas",
+          "name": "Mazorcada",
+          "icon": "🌽"
+        },
+        {
+          "id": "perros-dorilocos",
+          "name": "Perros y dorilocos",
+          "icon": "🌭"
+        },
+        {
+          "id": "bebidas",
+          "name": "Bebidas",
+          "icon": "🥤"
+        },
+        {
+          "id": "combos",
+          "name": "Combos",
+          "icon": "📋"
+        },
+        {
+          "id": "pizzas",
+          "name": "Pizzas",
+          "icon": "🍕"
+        },
+        {
+          "id": "papas",
+          "name": "Papas",
+          "icon": "🍟"
+        },
+        {
+          "id": "nachos",
+          "name": "Nachos",
+          "icon": "🧀"
+        }
+      ],
+      "vegetables": [
+        "Lechuga",
+        "Tomate",
+        "Cebolla cruda",
+        "Cebolla caramelizada",
+        "Pepinillos",
+        "Pico de gallo",
+        "Jalapeños",
+        "Piña en trozos",
+        "Doritos"
       ],
       "addons": [
-        { "id": "papas", "name": "Papas francesas", "icon": "🍟", "price": 6000 },
-        { "id": "gaseosa", "name": "Gaseosa personal", "icon": "🥤", "price": 2700 },
-        { "id": "nuggets", "name": "Nuggets", "icon": "🍗", "price": 9000 },
-        { "id": "tocineta", "name": "Tocineta crujiente", "icon": "🥓", "price": 4000 }
+        {
+          "id": "doble-carne",
+          "name": "Doble carne",
+          "icon": "🍔",
+          "price": 5500,
+          "group": "Adiciones"
+        },
+        {
+          "id": "maiz-tierno",
+          "name": "Maíz tierno",
+          "icon": "🌽",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "huevo",
+          "name": "Huevo",
+          "icon": "🥚",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "champinon",
+          "name": "Champiñón",
+          "icon": "🍄",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "tocineta",
+          "name": "Tocineta",
+          "icon": "🥓",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "platano-maduro",
+          "name": "Plátano maduro",
+          "icon": "🍌",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "carne-desmechada",
+          "name": "Carne desmechada",
+          "icon": "🥩",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "pollo-desmechado",
+          "name": "Pollo desmechado",
+          "icon": "🍗",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "queso-cheddar",
+          "name": "Queso cheddar",
+          "icon": "🧀",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "guacamole",
+          "name": "Guacamole",
+          "icon": "🥑",
+          "price": 4000,
+          "group": "Adiciones"
+        },
+        {
+          "id": "salsa-tartara",
+          "name": "Salsa tártara",
+          "icon": "🥣",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "salsa-rosada",
+          "name": "Salsa rosada",
+          "icon": "🥣",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "salsa-pina",
+          "name": "Salsa de piña",
+          "icon": "🍍",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "tomate",
+          "name": "Tomate",
+          "icon": "🍅",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "pimenton",
+          "name": "Pimentón",
+          "icon": "🫑",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "mostaza",
+          "name": "Mostaza",
+          "icon": "🥣",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "mayonesa",
+          "name": "Mayonesa",
+          "icon": "🥣",
+          "price": 0,
+          "group": "Salsas"
+        },
+        {
+          "id": "maiz-dulce",
+          "name": "Maíz dulce",
+          "icon": "🌽",
+          "price": 0,
+          "group": "Salsas"
+        }
       ],
       "products": [
         {
           "id": "hamburguesa-sencilla",
           "categoryId": "hamburguesas",
-          "name": "Hamburguesa Sencilla",
-          "description": "El clásico artesanal perfecto para los que buscan el sabor original y equilibrado.",
-          "ingredients": "Pan, carne artesanal, queso mozzarella, lechuga, tomate, cebolla caramelizada y papas chips.",
+          "name": "Sencilla",
+          "description": "Hamburguesa artesanal clásica con vegetales frescos y papas chips.",
+          "ingredients": "Pan, carne, queso mozzarella, lechuga, tomate, cebolla caramelizada y papas chips.",
           "price": 14000,
           "promoPrice": 0,
           "available": true,
           "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80"
         },
         {
-          "id": "hamburguesa-mistica",
+          "id": "hamburguesa-beicon",
           "categoryId": "hamburguesas",
-          "name": "Hamburguesa Mística",
-          "description": "Una experiencia crujiente con chunchullo crocante o papas dentro de la hamburguesa y vegetales al gusto.",
-          "ingredients": "Pan, carne artesanal, chunchullo crocante o papas, vegetales al gusto y salsa de la casa.",
+          "name": "Beicon",
+          "description": "Hamburguesa con tocineta, salsa de la casa y adición de doble carne.",
+          "ingredients": "Pan, carne, queso mozzarella, lechuga, tomate, cebolla morada, cebolla caramelizada, salsa de la casa y tocineta.",
           "price": 16000,
           "promoPrice": 0,
           "available": true,
-          "image": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=900&q=80"
+          "image": "/clientes/mistico-fast-food/menu/baicon.jpeg"
+        },
+        {
+          "id": "hamburguesa-mistica",
+          "categoryId": "hamburguesas",
+          "name": "Mística",
+          "description": "Hamburguesa con chunchullo crocante, papa francesa o aros de cebolla y cuatro vegetales a elección.",
+          "ingredients": "Pan, carne, chunchullo crocante, papa francesa o aros de cebolla y 4 vegetales a elección.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/mistica.jpg"
+        },
+        {
+          "id": "hamburguesa-gomela",
+          "categoryId": "hamburguesas",
+          "name": "Gomela",
+          "description": "Hamburguesa con vegetales salteados en BBQ, chorizo, salsa de arracacha y salsa de tocineta.",
+          "ingredients": "Pan, carne, vegetales salteados en salsa BBQ, chorizo, salsa de arracacha y salsa de tocineta.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "hamburguesa-mediterranea",
+          "categoryId": "hamburguesas",
+          "name": "Mediterránea",
+          "description": "Hamburguesa con queso de búfala, rúgula, tocineta, tomate y salsa de la casa.",
+          "ingredients": "Pan, carne, queso de búfala, lechuga rúgula, tocineta, tomate y salsa de la casa.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=900&q=80"
         },
         {
           "id": "hamburguesa-criolla",
           "categoryId": "hamburguesas",
-          "name": "Hamburguesa Criolla",
-          "description": "Sabor colombiano con chicharrón crujiente, plátano frito y guacamole artesanal.",
-          "ingredients": "Carne artesanal, chicharrón de callo, plátano frito, guacamole, pico de gallo y salsa de la casa.",
+          "name": "Criolla",
+          "description": "Hamburguesa de sabor colombiano con chicharrón de callo, plátano frito, guacamole y pico de gallo.",
+          "ingredients": "Pan, carne, chicharrón de callo, plátano frito, guacamole, pico de gallo, lechuga y salsa de la casa.",
           "price": 16000,
           "promoPrice": 0,
           "available": true,
@@ -83,80 +310,377 @@
           "id": "sandwich-mistico",
           "categoryId": "sandwiches",
           "name": "Sándwich Místico",
-          "description": "Pan artesanal crujiente con chunchullo en reducción de ron y panela, manzana verde, tocineta y papas.",
-          "ingredients": "Pan artesanal, chunchullo crocante, lechuga, tomate, queso mozzarella, manzana verde y tocineta.",
+          "description": "Incluye papas y gaseosa. Pan artesanal con chunchullo crocante en salsa de panela y reducción de ron.",
+          "ingredients": "Pan artesanal, chunchullo crocante en salsa de panela, reducción de ron, lechuga, tomate, queso mozzarella, manzana verde y tocineta.",
           "price": 23000,
           "promoPrice": 0,
           "available": true,
           "image": "https://images.unsplash.com/photo-1521390188846-e2a3a97453a0?auto=format&fit=crop&w=900&q=80"
         },
         {
-          "id": "costillas-bbq",
+          "id": "costillas",
           "categoryId": "costillas",
-          "name": "Costillas BBQ Premium",
-          "description": "Costilla de cerdo tierna bañada en BBQ artesanal con pimientos y chile dulce picante.",
-          "ingredients": "250g de costilla de cerdo, salsa BBQ de la casa y acompañamiento a elección.",
+          "name": "Costillas",
+          "description": "250 g de costillas con chile dulce, pimentón y BBQ. Incluye papa francesa, casco o aros de cebolla.",
+          "ingredients": "Papa francesa, casco o aros de cebolla, 250 g de costillas, chile dulce, pimentón y BBQ.",
           "price": 26000,
           "promoPrice": 0,
           "available": true,
           "image": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80"
         },
         {
-          "id": "combo-alitas-x10",
+          "id": "plato-mixto",
+          "categoryId": "platos-mixtos",
+          "name": "Plato Mixto",
+          "description": "Plato mixto con acompañamiento, alitas, costillas y carne.",
+          "ingredients": "Papa francesa, casco o aros de cebolla, 5 alitas, 200 g de costillas y 200 g de carne.",
+          "price": 32000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/plato-mixto.jpeg"
+        },
+        {
+          "id": "salchipapa-personal",
+          "categoryId": "salchipapas",
+          "name": "Salchipapa Personal",
+          "description": "Porción personal con papa, salchicha americana, queso mozzarella, vegetales y papas chips.",
+          "ingredients": "150 g de papa, salchicha americana, queso mozzarella, 2 vegetales al gusto y papas chips.",
+          "price": 14000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "salchipapa-doble",
+          "categoryId": "salchipapas",
+          "name": "Salchipapa Doble",
+          "description": "Doble salchipapa con 300 g de papa, dos salchichas, queso mozzarella, vegetales y papas chips.",
+          "ingredients": "300 g de papa, 2 salchichas americanas, queso mozzarella, 2 vegetales al gusto y papas chips.",
+          "price": 23000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1585109649139-366815a0d713?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "salchipapa-familiar",
+          "categoryId": "salchipapas",
+          "name": "Salchipapa Familiar",
+          "description": "Salchipapa familiar con costilla, pollo, carne, maíz, salchichas, plátano, vegetales y papas chips.",
+          "ingredients": "300 g de papa, costilla, pollo, carne, maíz, 2 salchichas, plátano, lechuga, pico de gallo y papas chips.",
+          "price": 50000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/salchipapa-familiar.jpg"
+        },
+        {
+          "id": "alitas-x5",
           "categoryId": "alitas",
-          "name": "Combo Alitas X10",
-          "description": "Diez alitas jugosas en salsa chile dulce, tamarindo o BBQ con papas, cascos o aros.",
-          "ingredients": "10 alitas, salsa a elección y acompañamiento.",
+          "name": "Alitas 5 unidades",
+          "description": "Incluyen papa francesa, casco o aros de cebolla. Salsas: chile dulce, picante, tamarindo o BBQ.",
+          "ingredients": "5 alitas, acompañamiento a elección y salsa a elección.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "alitas-x10",
+          "categoryId": "alitas",
+          "name": "Alitas 10 unidades",
+          "description": "Incluyen papa francesa, casco o aros de cebolla. Salsas: chile dulce, picante, tamarindo o BBQ.",
+          "ingredients": "10 alitas, acompañamiento a elección y salsa a elección.",
           "price": 30000,
           "promoPrice": 0,
           "available": true,
           "image": "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=900&q=80"
         },
         {
-          "id": "salchipapa-familiar",
-          "categoryId": "salchipapas",
-          "name": "Salchipapa Familiar Mística",
-          "description": "Papa crujiente con costilla, pollo, carne desmechada, maíz, salchichas, plátano, queso y papas chips.",
-          "ingredients": "Papa, costilla, pollo, carne desmechada, maíz, salchichas, plátano maduro, queso y pico de gallo.",
-          "price": 50000,
+          "id": "mazorcada",
+          "categoryId": "mazorcadas",
+          "name": "Mazorcada",
+          "description": "Mazorcada con maíz, carnes, chorizo, plátano, lechuga y papas chips.",
+          "ingredients": "Maíz, cebolla caramelizada, carne, pollo, chorizo, plátano, lechuga y papas chips.",
+          "price": 0,
           "promoPrice": 0,
-          "available": true,
-          "image": "https://images.unsplash.com/photo-1623653387945-2fd25214f8fc?auto=format&fit=crop&w=900&q=80"
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "https://images.unsplash.com/photo-1514516345957-556ca7d90a29?auto=format&fit=crop&w=900&q=80"
         },
         {
           "id": "perro-sencillo",
-          "categoryId": "otros",
-          "name": "Perro Sencillo",
-          "description": "Perro caliente con salchicha americana, pan artesanal, queso mozzarella gratinado y papas chips.",
-          "ingredients": "Pan artesanal, salchicha americana, queso mozzarella, papas chips y salsas de la casa.",
+          "categoryId": "perros-dorilocos",
+          "name": "Perro sencillo",
+          "description": "Perro caliente clásico de la casa.",
+          "ingredients": "Pan, salchicha americana, queso mozzarella, papas chips y salsas.",
           "price": 10000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/perro-caliente.jpeg"
+        },
+        {
+          "id": "choriperro",
+          "categoryId": "perros-dorilocos",
+          "name": "Choriperro",
+          "description": "Perro con chorizo artesanal.",
+          "ingredients": "Pan, chorizo, queso mozzarella, papas chips y salsas.",
+          "price": 14000,
           "promoPrice": 0,
           "available": true,
           "image": "https://images.unsplash.com/photo-1627059318424-5890d4860179?auto=format&fit=crop&w=900&q=80"
         },
         {
+          "id": "dorilocos-pequenos",
+          "categoryId": "perros-dorilocos",
+          "name": "Dorilocos pequeños",
+          "description": "Dorilocos pequeños con el toque Místico.",
+          "ingredients": "Doritos, maíz, queso, carnes de la casa y pico de gallo.",
+          "price": 15000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/dorilocos.jpg"
+        },
+        {
+          "id": "dorilocos-familiar",
+          "categoryId": "perros-dorilocos",
+          "name": "Dorilocos familiar",
+          "description": "Dorilocos familiares para compartir.",
+          "ingredients": "Doritos, maíz, carnes, guacamole y queso mozzarella.",
+          "price": 35000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/dorilocos.jpg"
+        },
+        {
+          "id": "limonada-natural",
+          "categoryId": "bebidas",
+          "name": "Limonada natural",
+          "description": "Limonada natural refrescante.",
+          "ingredients": "Limón, agua y hielo.",
+          "price": 6000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/limonada-natural.jpg?v=20260714-limonadas"
+        },
+        {
+          "id": "limonada-soda",
+          "categoryId": "bebidas",
+          "name": "Limonada con soda",
+          "description": "Limonada con soda carbonatada.",
+          "ingredients": "Limón, soda y hielo.",
+          "price": 7000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/limonada-soda.jpg?v=20260714-limonadas"
+        },
+        {
           "id": "limonada-coco",
           "categoryId": "bebidas",
-          "name": "Limonada de Coco",
-          "description": "Limonada insignia de la casa con textura cremosa y hielo frappé.",
-          "ingredients": "Crema de coco, limón fresco, leche condensada y hielo.",
+          "name": "Limonada de coco",
+          "description": "Limonada cremosa de coco.",
+          "ingredients": "Crema de coco, limón fresco y hielo.",
           "price": 8000,
           "promoPrice": 0,
           "available": true,
-          "image": "https://images.unsplash.com/photo-1546173159-3159ab4d069a?auto=format&fit=crop&w=900&q=80"
+          "image": "/clientes/mistico-fast-food/menu/limonada-coco.jpg?v=20260714-limonadas"
         },
         {
-          "id": "gaseosa",
+          "id": "gaseosa-250",
           "categoryId": "bebidas",
-          "name": "Gaseosa 250ml",
-          "description": "Gaseosa personal fría para acompañar tu pedido.",
+          "name": "Gaseosa 250 ml",
+          "description": "Gaseosa personal fría.",
           "ingredients": "Producto sujeto a disponibilidad.",
           "price": 2700,
           "promoPrice": 0,
           "available": true,
           "image": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "jugo-agua",
+          "categoryId": "bebidas",
+          "name": "Jugo en agua",
+          "description": "Jugo natural en agua.",
+          "ingredients": "Pulpa de fruta, agua y hielo.",
+          "price": 7000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "jugo-leche",
+          "categoryId": "bebidas",
+          "name": "Jugo en leche",
+          "description": "Jugo natural en leche.",
+          "ingredients": "Pulpa de fruta, leche y hielo.",
+          "price": 8000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "agua",
+          "categoryId": "bebidas",
+          "name": "Agua",
+          "description": "Agua embotellada.",
+          "ingredients": "Agua.",
+          "price": 3000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "cerveza",
+          "categoryId": "bebidas",
+          "name": "Cerveza",
+          "description": "Cerveza fría.",
+          "ingredients": "Cerveza sujeta a disponibilidad.",
+          "price": 5000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "combo-sencillo",
+          "categoryId": "combos",
+          "name": "Combo sencillo",
+          "description": "Combo sencillo de la casa.",
+          "ingredients": "Hamburguesa sencilla, papas y gaseosa.",
+          "price": 20000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "combo-especial",
+          "categoryId": "combos",
+          "name": "Combo especial",
+          "description": "Combo especial de la casa.",
+          "ingredients": "Hamburguesa especial, papas y gaseosa.",
+          "price": 24000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=900&q=80"
+        },
+        {
+          "id": "hamburguesa-costena",
+          "categoryId": "hamburguesas",
+          "name": "Costeña",
+          "description": "Hamburguesa artesanal de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/costena.jpeg"
+        },
+        {
+          "id": "hamburguesa-la-suprema",
+          "categoryId": "hamburguesas",
+          "name": "La Suprema",
+          "description": "Hamburguesa artesanal de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/la-suprema.jpeg"
+        },
+        {
+          "id": "salchipapas",
+          "categoryId": "salchipapas",
+          "name": "Salchipapas",
+          "description": "Salchipapas de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/salchipapas.jpeg"
+        },
+        {
+          "id": "papas-cheese-bacon",
+          "categoryId": "papas",
+          "name": "Papas Cheese Bacon",
+          "description": "Papas con queso y tocineta.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/papas-cheese-bacon.jpg"
+        },
+        {
+          "id": "nachos",
+          "categoryId": "nachos",
+          "name": "Nachos",
+          "description": "Nachos de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/nachos.jpeg"
+        },
+        {
+          "id": "pizza-3-quesos",
+          "categoryId": "pizzas",
+          "name": "3 Quesos",
+          "description": "Pizza de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/pizza-3-quesos.jpg"
+        },
+        {
+          "id": "pizza-hawaiana",
+          "categoryId": "pizzas",
+          "name": "Hawaiana",
+          "description": "Pizza de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/pizza-hawaiana.jpg"
+        },
+        {
+          "id": "pizza-criolla",
+          "categoryId": "pizzas",
+          "name": "Pizza Criolla",
+          "description": "Pizza de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/pizza-criolla.jpg"
+        },
+        {
+          "id": "pizza-salami",
+          "categoryId": "pizzas",
+          "name": "Salami",
+          "description": "Pizza de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 0,
+          "promoPrice": 0,
+          "available": false,
+          "priceNote": "Precio por confirmar",
+          "image": "/clientes/mistico-fast-food/menu/pizza-salami.jpg"
+        },
+        {
+          "id": "hamburguesa-especial",
+          "categoryId": "hamburguesas",
+          "name": "Especial",
+          "description": "Hamburguesa especial de la casa.",
+          "ingredients": "Producto sujeto a disponibilidad.",
+          "price": 16000,
+          "promoPrice": 0,
+          "available": true,
+          "image": "/clientes/mistico-fast-food/menu/baicon.jpeg"
         }
-      ]
+      ],
+      "menuUpdatedAt": "2026-07-14T19:00:49.088Z"
     }
   ]
 }

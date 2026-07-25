@@ -16,7 +16,7 @@
           <label>Usuario<input name="user" autocomplete="username" required></label>
           <label>Contrasena<input name="password" type="password" autocomplete="current-password" required></label>
           <button type="submit">Ingresar</button>
-          <small>Demo local: admin / Promos2026*</small>
+          <small>Acceso interno: admin / Promos2026*</small>
         </form>
       </section>
 
@@ -28,10 +28,24 @@
           </div>
           <div class="actions">
             <a href="/clientes/mistico-fast-food" target="_blank" rel="noopener">Ver menu</a>
+            <button id="saveMenu" type="button">Guardar cambios</button>
             <button id="exportMenu" type="button">Exportar JSON</button>
             <button id="logoutAdmin" type="button">Salir</button>
           </div>
         </header>
+        <p id="saveStatus" class="save-status"></p>
+
+        <section class="panel">
+          <h2>Imagen de referencia</h2>
+          <form id="brandForm" class="brand-form">
+            <input name="displayName" placeholder="Nombre del restaurante">
+            <input name="cover" placeholder="URL portada principal">
+            <input name="referenceImage" placeholder="URL imagen de referencia">
+            <input name="referenceTitle" placeholder="Titulo de referencia">
+            <textarea name="referenceSummary" rows="2" placeholder="Descripcion corta"></textarea>
+            <button type="submit">Guardar referencia</button>
+          </form>
+        </section>
 
         <section class="grid">
           <form id="categoryForm" class="panel">

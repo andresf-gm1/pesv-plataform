@@ -8,13 +8,17 @@ let activeCategory = "hamburguesas";
 let cart = [];
 
 async function loadRestaurant() {
+  const response = await fetch("/data/restaurants.json", { cache: "no-store" });
+  const data = await response.json();
+  const published = data.restaurants.find((item) => item.id === RESTAURANT_ID);
   const local = localStorage.getItem(STORAGE_MENU);
   if (local) {
-    restaurant = JSON.parse(local);
+    const saved = JSON.parse(local);
+    const savedTime = Date.parse(saved.menuUpdatedAt || "");
+    const publishedTime = Date.parse(published.menuUpdatedAt || "");
+    restaurant = savedTime >= publishedTime ? saved : published;
   } else {
-    const response = await fetch("/data/restaurants.json");
-    const data = await response.json();
-    restaurant = data.restaurants.find((item) => item.id === RESTAURANT_ID);
+    restaurant = published;
   }
 
   document.documentElement.style.setProperty("--mistico-yellow", restaurant.brand.primary);
@@ -29,6 +33,15 @@ async function loadRestaurant() {
 
 function productPrice(product) {
   return Number(product.promoPrice || product.price || 0);
+}
+
+function productPriceLabel(product) {
+  const price = productPrice(product);
+  return price > 0 ? money.format(price) : product.priceNote || "Consultar";
+}
+
+function productIcon(product) {
+  return restaurant.categories.find((category) => category.id === product.categoryId)?.icon || "🍔";
 }
 
 function renderCategories() {
@@ -58,10 +71,10 @@ function renderProducts() {
         <div class="price-row">
           <span>
             ${product.promoPrice ? `<del>${money.format(product.price)}</del>` : ""}
-            <strong>${money.format(productPrice(product))}</strong>
+            <strong>${productPriceLabel(product)}</strong>
           </span>
-          <button type="button" ${product.available ? "" : "disabled"} data-add="${product.id}">
-            ${product.available ? "Agregar" : "Agotado"}
+          <button type="button" ${product.available && productPrice(product) > 0 ? "" : "disabled"} data-add="${product.id}">
+            ${product.available && productPrice(product) > 0 ? "Agregar" : "Consultar"}
           </button>
         </div>
       </div>
@@ -80,20 +93,28 @@ function addToCart(productId) {
   if (existing) {
     existing.quantity += 1;
   } else {
-    cart.push({ id: productId, name: product.name, price: productPrice(product), quantity: 1, icon: "🍔" });
+    cart.push({ id: productId, name: product.name, price: productPrice(product), quantity: 1, icon: productIcon(product) });
   }
   askAddons();
   renderCart();
 }
 
 function askAddons() {
-  const choices = restaurant.addons.map((addon) => `${addon.icon} ${addon.name} (${money.format(addon.price)})`).join("\n");
+  const normalize = (value) => String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  const choices = restaurant.addons.map((addon) => {
+    const price = Number(addon.price || 0);
+    const group = addon.group ? `${addon.group}: ` : "";
+    return `${addon.icon} ${group}${addon.name} (${price > 0 ? money.format(price) : "Gratis"})`;
+  }).join("\n");
   const ids = restaurant.addons.map((addon) => addon.id).join(", ");
-  const selected = window.prompt(`¿Deseas agregar acompañamientos?\n${choices}\n\nEscribe una o varias opciones: ${ids}. Puedes dejar vacío.`);
+  const selected = window.prompt(`¿Deseas agregar adicionales o salsas?\n${choices}\n\nPuedes escribir el nombre o codigo: ${ids}. Puedes dejar vacio.`);
   if (!selected) return;
-  const normalized = selected.toLowerCase();
+  const normalized = normalize(selected);
   restaurant.addons
-    .filter((addon) => normalized.includes(addon.id))
+    .filter((addon) => normalized.includes(normalize(addon.id)) || normalized.includes(normalize(addon.name)))
     .forEach((addon) => {
       const existing = cart.find((item) => item.id === addon.id && item.addon);
       if (existing) existing.quantity += 1;

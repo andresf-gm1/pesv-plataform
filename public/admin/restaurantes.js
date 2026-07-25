@@ -8,22 +8,51 @@ let restaurant;
 
 async function loadData() {
   const local = localStorage.getItem(MENU_KEY);
+  const response = await fetch("/data/restaurants.json", { cache: "no-store" });
+  const data = await response.json();
+  const published = data.restaurants.find((item) => item.id === RESTAURANT_ID);
+  restaurant = published;
   if (local) {
-    restaurant = JSON.parse(local);
-  } else {
-    const response = await fetch("/data/restaurants.json");
-    const data = await response.json();
-    restaurant = data.restaurants.find((item) => item.id === RESTAURANT_ID);
+    const saved = JSON.parse(local);
+    const savedTime = Date.parse(saved.menuUpdatedAt || "");
+    const publishedTime = Date.parse(published.menuUpdatedAt || "");
+    if (savedTime >= publishedTime) restaurant = { ...published, ...saved };
   }
   renderAdmin();
 }
 
-function saveData() {
+function setSaveStatus(message, isError = false) {
+  const target = document.getElementById("saveStatus");
+  target.textContent = message;
+  target.classList.toggle("error", isError);
+}
+
+async function saveData() {
+  restaurant.menuUpdatedAt = new Date().toISOString();
   localStorage.setItem(MENU_KEY, JSON.stringify(restaurant));
+  try {
+    const response = await fetch(`/api/restaurants/${RESTAURANT_ID}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(restaurant)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "No se pudo guardar en el servidor.");
+    restaurant = result.restaurant;
+    localStorage.setItem(MENU_KEY, JSON.stringify(restaurant));
+    setSaveStatus("Menu guardado en el servidor. Actualiza la pagina del restaurante para verlo.");
+  } catch (error) {
+    setSaveStatus("Guardado local en este navegador. Para produccion estatica, publica el JSON actualizado con deploy.", true);
+  }
   renderAdmin();
 }
 
 function renderAdmin() {
+  const brandForm = document.getElementById("brandForm");
+  ["displayName", "cover", "referenceImage", "referenceTitle", "referenceSummary"].forEach((field) => {
+    if (brandForm.elements[field]) brandForm.elements[field].value = restaurant[field] || "";
+  });
+
   document.getElementById("productCategory").innerHTML = restaurant.categories.map((category) => (
     `<option value="${category.id}">${category.icon} ${category.name}</option>`
   )).join("");
@@ -37,8 +66,13 @@ function renderAdmin() {
 
   document.getElementById("productList").innerHTML = restaurant.products.map((product) => `
     <div class="item">
-      <div class="item-row"><strong>${product.name}</strong><button data-edit-product="${product.id}" type="button">Editar</button></div>
-      <small>${product.categoryId} | $${Number(product.promoPrice || product.price).toLocaleString("es-CO")} | ${product.available ? "Disponible" : "Agotado"}</small>
+      <div class="product-admin-row">
+        <img src="${product.image}" alt="${product.name}" loading="lazy">
+        <div>
+          <div class="item-row"><strong>${product.name}</strong><button data-edit-product="${product.id}" type="button">Editar</button></div>
+          <small>${product.categoryId} | $${Number(product.promoPrice || product.price).toLocaleString("es-CO")} | ${product.available ? "Disponible" : "Agotado"}</small>
+        </div>
+      </div>
       <button data-delete-product="${product.id}" type="button">Eliminar</button>
     </div>
   `).join("");
@@ -116,6 +150,17 @@ document.getElementById("categoryForm").addEventListener("submit", (event) => {
   saveData();
 });
 
+document.getElementById("brandForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  restaurant.displayName = data.get("displayName") || restaurant.displayName;
+  restaurant.cover = data.get("cover") || restaurant.cover;
+  restaurant.referenceImage = data.get("referenceImage") || restaurant.referenceImage || restaurant.cover;
+  restaurant.referenceTitle = data.get("referenceTitle") || restaurant.referenceTitle || "Menu actualizado";
+  restaurant.referenceSummary = data.get("referenceSummary") || restaurant.referenceSummary || restaurant.shortDescription;
+  saveData();
+});
+
 document.getElementById("productForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = new FormData(event.currentTarget);
@@ -144,6 +189,10 @@ document.getElementById("exportMenu").addEventListener("click", () => {
   link.href = URL.createObjectURL(blob);
   link.click();
   URL.revokeObjectURL(link.href);
+});
+
+document.getElementById("saveMenu").addEventListener("click", () => {
+  saveData();
 });
 
 document.getElementById("logoutAdmin").addEventListener("click", () => {
