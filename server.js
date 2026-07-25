@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -75,6 +75,7 @@ const pageRoutes = {
     "/clientes/mistico-fast-food": "clientes/mistico-fast-food.html",
     "/clientes/sophia-gonzalez": "clientes/sophia-gonzalez.html",
     "/clientes/growthhub-rewards": "clientes/growthhub-rewards.html",
+    "/clientes/growthhub-rewards/calculadora": "clientes/growthhub-rewards/calculadora.html",
     "/admin/restaurantes": "admin/restaurantes.html",
     "/login": "login.html",
     "/dashboard": "monitor.html",

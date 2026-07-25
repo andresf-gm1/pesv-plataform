@@ -11,6 +11,7 @@
     { "source": "/clientes/mistico-fast-food", "destination": "/clientes/mistico-fast-food.html" },
     { "source": "/clientes/sophia-gonzalez", "destination": "/clientes/sophia-gonzalez.html" },
     { "source": "/clientes/growthhub-rewards", "destination": "/clientes/growthhub-rewards.html" },
+    { "source": "/clientes/growthhub-rewards/calculadora", "destination": "/clientes/growthhub-rewards/calculadora.html" },
     { "source": "/admin/restaurantes", "destination": "/admin/restaurantes.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/dashboard", "destination": "/monitor.html" },
