@@ -197,6 +197,130 @@
         </div>
       </section>
 
+      <section id="cotizador" class="section calc-section">
+        <div class="section-head reveal">
+          <p class="eyebrow">Calculadora inteligente SMM</p>
+          <h2>Configura tu impulso en redes con recomendación de IA</h2>
+          <p>Elige tu red social, el servicio que necesitas, la cantidad y nuestro motor inteligente te recomendará la mejor estrategia para evitar penalizaciones y crecer orgánicamente.</p>
+        </div>
+
+        <div class="calc-container reveal">
+          <!-- Paso 1: Red Social -->
+          <div class="calc-block">
+            <h3>1. Selecciona la Red Social</h3>
+            <div class="network-grid" id="networkGrid">
+              <button type="button" class="network-btn active" data-network="Instagram">
+                <span class="network-icon">📸</span>
+                <strong>Instagram</strong>
+              </button>
+              <button type="button" class="network-btn" data-network="TikTok">
+                <span class="network-icon">🎵</span>
+                <strong>TikTok</strong>
+              </button>
+              <button type="button" class="network-btn" data-network="YouTube">
+                <span class="network-icon">🎥</span>
+                <strong>YouTube</strong>
+              </button>
+              <button type="button" class="network-btn" data-network="Facebook">
+                <span class="network-icon">👥</span>
+                <strong>Facebook</strong>
+              </button>
+              <button type="button" class="network-btn" data-network="Twitter / X">
+                <span class="network-icon">🐦</span>
+                <strong>Twitter / X</strong>
+              </button>
+              <button type="button" class="network-btn" data-network="Twitch">
+                <span class="network-icon">🎮</span>
+                <strong>Twitch</strong>
+              </button>
+              <button type="button" class="network-btn" data-network="Spotify">
+                <span class="network-icon">🎵</span>
+                <strong>Spotify</strong>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 2: Servicio -->
+          <div class="calc-block">
+            <h3>2. Tipo de Servicio</h3>
+            <div class="service-grid" id="serviceGrid">
+              <button type="button" class="service-btn active" data-service="Seguidores">
+                <strong>Seguidores</strong>
+                <small>Audiencia e influencia</small>
+              </button>
+              <button type="button" class="service-btn" data-service="Likes">
+                <strong>Me gusta / Likes</strong>
+                <small>Interacción rápida</small>
+              </button>
+              <button type="button" class="service-btn" data-service="Comentarios">
+                <strong>Comentarios</strong>
+                <small>Engagement real</small>
+              </button>
+              <button type="button" class="service-btn" data-service="Reproducciones">
+                <strong>Reproducciones / Views</strong>
+                <small>Viralidad garantizada</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 3: Cantidad y Enlace -->
+          <div class="calc-block split">
+            <div>
+              <h3>3. Elige la Cantidad</h3>
+              <div class="range-container">
+                <input type="range" id="serviceQty" min="100" max="10000" step="100" value="1000" class="qty-slider">
+                <div class="range-values">
+                  <span id="qtyVal">1.000</span>
+                  <small>unidades</small>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>4. Enlace de tu Red Social</h3>
+              <div class="url-input-wrap">
+                <input type="url" id="targetUrl" placeholder="https://instagram.com/tu_usuario" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel de IA y Resumen -->
+          <div class="calc-panel-summary">
+            <!-- Inteligencia Artificial -->
+            <div class="ai-advice-box">
+              <div class="ai-box-header">
+                <span class="ai-icon">🤖</span>
+                <strong>Recomendación del Asistente IA</strong>
+              </div>
+              <p id="aiAdviceText">Para 1,000 seguidores en Instagram, se aconseja distribuirlos gradualmente en 3-5 días y acompañar con al menos 150 likes para que la tasa de interacción permanezca dentro de los parámetros orgánicos.</p>
+            </div>
+
+            <!-- Resumen de Pedido -->
+            <div class="order-summary-box">
+              <h3>Resumen de Pedido</h3>
+              <div class="summary-details">
+                <div class="summary-row">
+                  <span>Impulso:</span>
+                  <strong id="sumService">Instagram - Seguidores</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Cantidad:</span>
+                  <strong id="sumQty">1.000 unidades</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Enlace:</span>
+                  <span id="sumUrl" class="url-truncate">No ingresado</span>
+                </div>
+                <div class="summary-row promo-row">
+                  <span>Bono Wallet (Cashback):</span>
+                  <strong>+12% saldo de regalo</strong>
+                </div>
+              </div>
+              <button type="button" id="sendOrderWa" class="button primary full">Enviar pedido por WhatsApp</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="contacto" class="section contact-section">
         <div class="contact-copy reveal">
           <p class="eyebrow">Construyamos la plataforma</p>
